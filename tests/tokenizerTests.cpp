@@ -128,12 +128,42 @@ u8 checkTokenizedIdentifier()
   return true;
 }
 
+u8 checkCorrectKeyword()
+{
+   const char* customString = "Plag dac var";
+  std::vector<Token> tokens = tokenize(customString);
+
+  // - - - Define the expected tokens
+  std::vector<Token> expectedTokens =
+  {
+    Token{"Plag", PLAG},
+    Token{"dac", DAC},
+    Token{"var", IDENTIFIER},
+  };
+
+  //- - - Check if the tokenization matches the expected tokens
+  expectShouldBe(expectedTokens.size(), tokens.size());
+
+  // - - - Iterate through tokens and compare with expected
+  for (u64 i = 0; i < tokens.size(); i++) 
+  {
+    expectShouldBe(expectedTokens[i].type, tokens[i].type);
+    expectStringToBe(expectedTokens[i].literal.c_str(), tokens[i].literal.c_str());
+  }
+
+  FORGE_LOG_INFO("Generated %d tokens out of %s", tokens.size(), customString);
+  printTokens(&tokens);
+
+  return true;
+}
+
 
 int main () 
 {
   registerTest(checkTokenizeCustomString, "Check if we can tokenize a custom string");  
   registerTest(checkTokenizeFile, "Check if we can tokenize a file");
   registerTest(checkTokenizedIdentifier, "Check if it is able to detect IDENTIFIER");
+  registerTest(checkCorrectKeyword, "Check if it is able to lookup correct Keyword");
   runTests();
   return 0;
 }

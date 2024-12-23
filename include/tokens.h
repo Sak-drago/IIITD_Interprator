@@ -1,6 +1,7 @@
 #pragma once 
 #include "../defines.h"
 #include <string>
+#include <unordered_map>
 
 typedef enum TokenType
 {
@@ -12,8 +13,15 @@ typedef enum TokenType
   OPEN_PARANTHESIS,
   CLOSE_PARANTHESIS,
   BINARY_OPERATOR,
+  PLAG,
+  DAC,
   TOKEN_TYPES_COUNT,
 } TokenType;
+
+
+extern std::unordered_map<std::string, TokenType> keywords;
+
+TokenType lookUpKeywords(std::string &ident);
 
 typedef struct Token 
 {

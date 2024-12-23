@@ -3,6 +3,7 @@
 #include "../library/include/logger.h"
 #include "../library/include/filesystem.h"
 #include <vector>
+#include <string>
 #include <locale>
 
 // - - - Helper Functions - - -
@@ -30,6 +31,8 @@ const std::string tokenNames[TOKEN_TYPES_COUNT] =
   "OPEN_PARANTHESIS",
   "CLOSE_PARANTHESIS",
   "BINARY_OPERATOR",
+  "PLAG",
+  "DAC",
 };
 
 const std::string getTokenTypeString(TokenType TYPE)
@@ -49,6 +52,18 @@ int readIdentifier(const char* TOKEN, int START){
   return end;
 } 
 
+// - - - Look up table for Keywords - - -
+std::unordered_map<std::string, TokenType> keywords = {
+  {"Plag", PLAG},
+  {"dac", DAC},
+};
+
+TokenType lookUpKeywords(std::string &iden)
+{
+  auto it = keywords.find(iden);
+  if(it!=keywords.end()) return it->second;
+  return IDENTIFIER;
+}
 // - - - Interface Functions - - -
 
 // - - - function to get a vector of tokens out of source code
@@ -68,6 +83,9 @@ std::vector<Token> tokenize(const char* SRC_CODE)
     char currentChar = src[current];
     switch (currentChar)
     {
+      case ' ':
+        current++;
+        break;
       // - - - OPEN_PARANTHESIS
       case '(':
         tokens.push_back(makeToken(
@@ -117,13 +135,14 @@ std::vector<Token> tokenize(const char* SRC_CODE)
       default : 
         if(std::isalpha(currentChar,alphaChar)){
           int updatePosition = readIdentifier(SRC_CODE, current);
+          std::string idetinfier(SRC_CODE+current, updatePosition-current);
+          TokenType currTokenType = lookUpKeywords(idetinfier);
           tokens.push_back(makeToken(
                 SRC_CODE,
                 current,
                 updatePosition,
-                IDENTIFIER));
+                currTokenType));
           current = updatePosition;
-          break;
         }
         else {
           tokens.push_back(makeToken(
@@ -132,7 +151,6 @@ std::vector<Token> tokenize(const char* SRC_CODE)
                 current+1,
                 ILLEGAL));
           current++;
-          break;
         }
         break;
     }
