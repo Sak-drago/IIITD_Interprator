@@ -1,1 +1,20 @@
-# IIITD_Interprator
+# IIIT-D coding language
+
+***Imagine a coding language, made on the slangs, culture and things
+we pull off at IIIT-D. Now, time to turn that imagination into relaity***  
+
+
+
+## Suggested Keywords
+
+1. Cope : unsigned int with limit 3, perhap used for true, false, skip
+2. ICC  : Break for a for / while loop
+3. DAC  : For Exceptions (maybe catch in try, catch)
+4. Plag : Segfault or Some error
+5. LHC  : To create a class or a group of classes 
+6. BMS  : Finally in try catch (Noted never happens)
+7. CGPA : Primitive data type / another name for nullptr
+
+
+## Email ID shoutout:
+rishi23437@iiitd.ac.in
