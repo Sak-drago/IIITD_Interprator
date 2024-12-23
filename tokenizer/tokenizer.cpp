@@ -3,6 +3,7 @@
 #include "../library/include/logger.h"
 #include "../library/include/filesystem.h"
 #include <vector>
+#include <locale>
 
 // - - - Helper Functions - - -
 
@@ -37,8 +38,18 @@ const std::string getTokenTypeString(TokenType TYPE)
   return tokenNames[TYPE];
 }
 
-// - - - Interface Functions - - -
+// - - - Defines alpha characters for check to work - - -
+std::locale alphaChar;
 
+int readIdentifier(const char* TOKEN, int START){
+  while (std::isalpha(TOKEN[START], alphaChar)) {
+    START++; 
+  }
+  int end = START;
+  return end;
+} 
+
+// - - - Interface Functions - - -
 
 // - - - function to get a vector of tokens out of source code
 std::vector<Token> tokenize(const char* SRC_CODE)
@@ -104,6 +115,25 @@ std::vector<Token> tokenize(const char* SRC_CODE)
 
       // - - - handle multi character token later
       default : 
+        if(std::isalpha(currentChar,alphaChar)){
+          int updatePosition = readIdentifier(SRC_CODE, current);
+          tokens.push_back(makeToken(
+                SRC_CODE,
+                current,
+                updatePosition,
+                IDENTIFIER));
+          current = updatePosition;
+          break;
+        }
+        else {
+          tokens.push_back(makeToken(
+                SRC_CODE,
+                current,
+                current+1,
+                ILLEGAL));
+          current++;
+          break;
+        }
         break;
     }
   }

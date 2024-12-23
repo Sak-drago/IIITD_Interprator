@@ -3,3 +3,4 @@
 
 u8 checkTokenizeCustomString();
 u8 checkTokenizeFile();
+u8 checkTokenizedIdentifier();

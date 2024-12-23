@@ -9,7 +9,7 @@ u8 checkTokenizeCustomString()
   std::vector<Token> tokens = tokenize(customString);
 
   // - - - Define the expected tokens
-  std::vector<Token> expectedTokens = 
+  std::vector<Token> expectedTokens =
   {
     Token{"+", BINARY_OPERATOR},
     Token{"=", EQUALS},
@@ -18,7 +18,7 @@ u8 checkTokenizeCustomString()
     Token{")", CLOSE_PARANTHESIS},
   };
 
-  // - - - Check if the tokenization matches the expected tokens
+  //- - - Check if the tokenization matches the expected tokens
   expectShouldBe(expectedTokens.size(), tokens.size());
 
   // - - - Iterate through tokens and compare with expected
@@ -98,10 +98,42 @@ u8 checkTokenizeFile()
   return true;
 }
 
+u8 checkTokenizedIdentifier()
+{
+   const char* customString = "var+()";
+  std::vector<Token> tokens = tokenize(customString);
+
+  // - - - Define the expected tokens
+  std::vector<Token> expectedTokens =
+  {
+    Token{"var", IDENTIFIER},
+    Token{"+", BINARY_OPERATOR},
+    Token{"(", OPEN_PARANTHESIS},
+    Token{")", CLOSE_PARANTHESIS},
+  };
+
+  //- - - Check if the tokenization matches the expected tokens
+  expectShouldBe(expectedTokens.size(), tokens.size());
+
+  // - - - Iterate through tokens and compare with expected
+  for (u64 i = 0; i < tokens.size(); i++) 
+  {
+    expectShouldBe(expectedTokens[i].type, tokens[i].type);
+    expectStringToBe(expectedTokens[i].literal.c_str(), tokens[i].literal.c_str());
+  }
+
+  FORGE_LOG_INFO("Generated %d tokens out of %s", tokens.size(), customString);
+  printTokens(&tokens);
+
+  return true;
+}
+
+
 int main () 
 {
   registerTest(checkTokenizeCustomString, "Check if we can tokenize a custom string");  
   registerTest(checkTokenizeFile, "Check if we can tokenize a file");
+  registerTest(checkTokenizedIdentifier, "Check if it is able to detect IDENTIFIER");
   runTests();
   return 0;
 }

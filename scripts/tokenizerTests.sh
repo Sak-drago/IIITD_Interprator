@@ -1,5 +1,5 @@
 cd ..
 make 
-clear 
+clear
 ./bin/tokenizerTests
 cd scripts
