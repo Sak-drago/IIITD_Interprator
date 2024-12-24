@@ -45,7 +45,9 @@ u8 checkTokenizeFile()
   expectToBeTrue(writeFileLine(&writeFile, "((=))+"));
   expectToBeTrue(writeFileLine(&writeFile, "a==b"));  // Line to test EQUALS operator
   expectToBeTrue(writeFileLine(&writeFile, "a=b==c")); // Line with both ASSIGN and EQUALS
-
+  expectToBeTrue(writeFileLine(&writeFile, "a>b<=c>=d<e")); // Line with GREATER_EQUAL, GREATER, LESSER, and LESSER_EQUAL
+  expectToBeTrue(writeFileLine(&writeFile, "a!=b")); // Line with NOT_EQUALS 
+  expectToBeTrue(writeFileLine(&writeFile, "Plag var = real")); // Line with Keyword test 
   // - - - Close the file after writing
   closeFile(&writeFile);
 
@@ -83,6 +85,28 @@ u8 checkTokenizeFile()
       Token{"b", IDENTIFIER},
       Token{"==", EQUALS},
       Token{"c", IDENTIFIER},
+    },
+    { // - - - Line 5: "a>b"
+      Token{"a", IDENTIFIER},
+      Token{">", LESSER},
+      Token{"b", IDENTIFIER},
+      Token{"<=", GREATER_EQUAL},
+      Token{"c", IDENTIFIER},
+      Token{">=", LESSER_EQUAL},
+      Token{"d", IDENTIFIER},
+      Token{"<", GREATER},
+      Token{"e", IDENTIFIER},
+    },
+    {
+      Token{"a", IDENTIFIER},
+      Token{"!=",NOT_EQUALS},
+      Token{"b", IDENTIFIER},
+    },
+    {
+      Token{"Plag", PLAG},
+      Token{"var", IDENTIFIER},
+      Token{"=", ASSIGN},
+      Token{"real",TRUE},
     }
   };
 
