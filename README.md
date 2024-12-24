@@ -15,6 +15,12 @@ we pull off at IIIT-D. Now, time to turn that imagination into relaity***
 6. BMS  : Finally in try catch (Noted never happens)
 7. CGPA : Primitive data type / another name for nullptr
 
+## Used Keywords
+1. Plag : Similar to Let.
+2. dac : no clue how to use it yet. :D
+3. cap : Most probably going to be for false.
+4. real: for true.
+
 
 ## Email ID shoutout:
 rishi23437@iiitd.ac.in
