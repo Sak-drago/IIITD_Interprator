@@ -21,7 +21,12 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
     if (strcmp(ARGUMENT_VECTOR[1], "--f") == 0)
     {
       std::vector<std::vector<Token>> tokens = tokenizeFile(ARGUMENT_VECTOR[2]);
-      FORGE_LOG_INFO("%d Tokens generated out of file at : %s", tokens.size(), ARGUMENT_VECTOR[2]);
+      size_t size = 0;
+      for (std::vector<Token>& tok : tokens)
+      {
+        size += tok.size();
+      }
+      FORGE_LOG_INFO("%d Tokens generated out of file at : %s", size, ARGUMENT_VECTOR[1]);
 
       for (std::vector<Token>& tok : tokens)
       {
@@ -46,7 +51,12 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
     if (fileExists(ARGUMENT_VECTOR[1]))
     {
       std::vector<std::vector<Token>> tokens = tokenizeFile(ARGUMENT_VECTOR[1]);
-      FORGE_LOG_INFO("%d Tokens generated out of file at : %s", tokens.size(), ARGUMENT_VECTOR[1]);
+      size_t size = 0;
+      for (std::vector<Token>& tok : tokens)
+      {
+        size += tok.size();
+      }
+      FORGE_LOG_INFO("%d Tokens generated out of file at : %s", size, ARGUMENT_VECTOR[1]);
 
       for (std::vector<Token>& tok : tokens)
       {
