@@ -27,10 +27,16 @@ const std::string tokenNames[TOKEN_TYPES_COUNT] =
   "NUMBER",
   "IDENTIFIER",
   "EQUALS",
+  "NOT_EQUALS",
+  "NOT",
   "ASSIGN",
   "OPEN_PARANTHESIS",
   "CLOSE_PARANTHESIS",
   "BINARY_OPERATOR",
+  "GREATER",
+  "LESSER",
+  "GREATER_EQUAL",
+  "LESSER_EQUAL",
   "PLAG",
   "DAC",
 };
@@ -139,6 +145,78 @@ std::vector<Token> tokenize(const char* SRC_CODE)
         }
         break;
 
+       case '!':
+        switch(src[current + 1])
+        {
+          // - - -  != in a row means not equal
+          case '=':
+            tokens.push_back(makeToken(
+              SRC_CODE,     
+              current, 
+              current + 2, 
+              NOT_EQUALS));
+            current += 2;
+            break;
+
+          // - - - just one ! means not 
+          default:
+            tokens.push_back(makeToken(
+              SRC_CODE,     
+              current, 
+              current + 1, 
+              NOT));
+            current++;
+            break;
+        }
+        break;     
+
+      //- - - Greater Than Operators
+      case '<':
+        switch (src[current+1]) {
+          case '=':
+          // - - - greater and equal to check
+            tokens.push_back(makeToken(
+                  SRC_CODE,
+                  current,
+                  current+2,
+                  GREATER_EQUAL));
+            current+=2;
+            break;
+
+          // - - - else it is just Greater Than Comparison
+          default:
+            tokens.push_back(makeToken(
+                  SRC_CODE,
+                  current,
+                  current+1,
+                  GREATER));
+            current++;
+            break;
+        }
+        break;
+      //- - - Lesser Than Operators
+      case '>':
+        switch (src[current+1]) {
+          // - - - lesser and equal to check
+          case '=':
+            tokens.push_back(makeToken(
+                  SRC_CODE,
+                  current,
+                  current+2,
+                  LESSER_EQUAL));
+            current+=2;
+            break;
+          // - - - else it is just Less Than Comparison
+          default:
+            tokens.push_back(makeToken(
+                  SRC_CODE,
+                  current,
+                  current+1,
+                  LESSER));
+            current++;
+            break;
+        }
+        break;
       // - - - BINARY_OPERATOR
       case '+':
       case '-':
