@@ -1,5 +1,5 @@
 cd ..
 make
 clear
-./bin/tokenizerTests
+./bin/main "$@"
 cd scripts

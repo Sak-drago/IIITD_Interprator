@@ -12,7 +12,7 @@ u8 checkTokenizeCustomString()
   std::vector<Token> expectedTokens =
   {
     Token{"+", BINARY_OPERATOR},
-    Token{"=", EQUALS},
+    Token{"=", ASSIGN},
     Token{"-", BINARY_OPERATOR},
     Token{"(", OPEN_PARANTHESIS},
     Token{")", CLOSE_PARANTHESIS},
@@ -43,6 +43,8 @@ u8 checkTokenizeFile()
   // - - - Write multiple test lines to the file
   expectToBeTrue(writeFileLine(&writeFile, "(+)=(-)"));
   expectToBeTrue(writeFileLine(&writeFile, "((=))+"));
+  expectToBeTrue(writeFileLine(&writeFile, "a==b"));  // Line to test EQUALS operator
+  expectToBeTrue(writeFileLine(&writeFile, "a=b==c")); // Line with both ASSIGN and EQUALS
 
   // - - - Close the file after writing
   closeFile(&writeFile);
@@ -57,7 +59,7 @@ u8 checkTokenizeFile()
       Token{"(", OPEN_PARANTHESIS},
       Token{"+", BINARY_OPERATOR},
       Token{")", CLOSE_PARANTHESIS},
-      Token{"=", EQUALS},
+      Token{"=", ASSIGN},
       Token{"(", OPEN_PARANTHESIS},
       Token{"-", BINARY_OPERATOR},
       Token{")", CLOSE_PARANTHESIS},
@@ -65,10 +67,22 @@ u8 checkTokenizeFile()
     { // - - - Line 2: "((=))+"
       Token{"(", OPEN_PARANTHESIS},
       Token{"(", OPEN_PARANTHESIS},
-      Token{"=", EQUALS},
+      Token{"=", ASSIGN},
       Token{")", CLOSE_PARANTHESIS},
       Token{")", CLOSE_PARANTHESIS},
       Token{"+", BINARY_OPERATOR},
+    },
+    { // - - - Line 3: "a==b"
+      Token{"a", IDENTIFIER},
+      Token{"==", EQUALS},
+      Token{"b", IDENTIFIER},
+    },
+    { // - - - Line 4: "a=b==c"
+      Token{"a", IDENTIFIER},
+      Token{"=", ASSIGN},
+      Token{"b", IDENTIFIER},
+      Token{"==", EQUALS},
+      Token{"c", IDENTIFIER},
     }
   };
 
