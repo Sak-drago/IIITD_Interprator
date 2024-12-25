@@ -1,0 +1,4 @@
+for(Plag var = 1)
+while(real)
+if(real)
+yafir(cap)
