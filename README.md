@@ -20,7 +20,11 @@ we pull off at IIIT-D. Now, time to turn that imagination into relaity***
 2. dac : no clue how to use it yet. :D
 3. cap : Most probably going to be for false.
 4. real: for true.
-
+5. if : if statement.
+6. yafir: else if statement.
+7. ya: else statement.
+8. for: for loop.
+9. while: while loop.
 
 ## Email ID shoutout:
 rishi23437@iiitd.ac.in
