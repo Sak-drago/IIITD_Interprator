@@ -195,6 +195,82 @@ u8 checkCorrectKeyword()
   return true;
 }
 
+u8 checkLoopFile()
+{
+  // - - - Create and open a file for writing
+  File writeFile;
+  expectToBeTrue(openFile("testFile2.txt", FILE_MODE_WRITE, false, &writeFile));
+
+  // - - - Write multiple test lines to the file
+  expectToBeTrue(writeFileLine(&writeFile, "for(Plag var = 1)"));  // Line to test FOR loop
+  expectToBeTrue(writeFileLine(&writeFile, "while(real)")); // Line with WHILE loop
+  expectToBeTrue(writeFileLine(&writeFile, "if(real)")); // Line with IF statement 
+  expectToBeTrue(writeFileLine(&writeFile, "yafir(cap)")); // Line with ELIF statement
+  // - - - Close the file after writing
+  closeFile(&writeFile);
+
+  // - - - Tokenize the file
+  std::vector<std::vector<Token>> tokenizedLines = tokenizeFile("testFile2.txt");
+
+  // - - - Expected tokens for each line
+  std::vector<std::vector<Token>> expectedTokenizedLines = 
+  {
+    {
+      Token{"for", FOR},
+      Token{"(", OPEN_PARANTHESIS},
+      Token{"Plag", PLAG},
+      Token{"var", IDENTIFIER},
+      Token{"=", ASSIGN},
+      Token{"1",NUMBER},
+      Token{")", CLOSE_PARANTHESIS},
+    },
+
+    {
+      Token{"while", WHILE},
+      Token{"(", OPEN_PARANTHESIS},
+      Token{"real", TRUE},
+      Token{")", CLOSE_PARANTHESIS},
+    }, 
+    {
+      Token{"if", IF},
+      Token{"(", OPEN_PARANTHESIS},
+      Token{"real", TRUE},
+      Token{")", CLOSE_PARANTHESIS},
+    }, 
+
+    {
+      Token{"yafir", ELIF},
+      Token{"(", OPEN_PARANTHESIS},
+      Token{"cap", FALSE},
+      Token{")", CLOSE_PARANTHESIS},
+    }
+  };
+
+  // - - - Validate the number of lines tokenized
+  expectShouldBe(expectedTokenizedLines.size(), tokenizedLines.size());
+
+  // - - - Validate tokens for each line
+  for (u64 lineIndex = 0; lineIndex < tokenizedLines.size(); ++lineIndex) 
+  {
+    std::vector<Token>& tokens            = tokenizedLines[lineIndex];
+    std::vector<Token>& expectedTokens    = expectedTokenizedLines[lineIndex];
+
+    // - - - Validate the number of tokens on the current line
+    expectShouldBe(expectedTokens.size(), tokens.size());
+
+    // - - - Validate each token
+    for (u64 i = 0; i < tokens.size(); ++i) 
+    {
+      expectShouldBe(expectedTokens[i].type, tokens[i].type);
+      expectStringToBe(expectedTokens[i].literal.c_str(), tokens[i].literal.c_str());
+    }
+  
+    FORGE_LOG_INFO("Generated %d tokens", tokens.size());
+    printTokens(&tokens);
+  }
+
+  return true;
+}
 
 int main () 
 {
@@ -202,6 +278,7 @@ int main ()
   registerTest(checkTokenizeFile, "Check if we can tokenize a file");
   registerTest(checkTokenizedIdentifier, "Check if it is able to detect IDENTIFIER");
   registerTest(checkCorrectKeyword, "Check if it is able to lookup correct Keyword");
+  registerTest(checkLoopFile, "Check if the loops are being tokenized correctly");
   runTests();
   return 0;
 }

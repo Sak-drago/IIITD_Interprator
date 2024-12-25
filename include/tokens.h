@@ -23,6 +23,11 @@ typedef enum TokenType
   DAC,
   TRUE,
   FALSE,
+  IF,
+  ELIF,
+  ELSE,
+  FOR,
+  WHILE,
   TOKEN_TYPES_COUNT,
 } TokenType;
 

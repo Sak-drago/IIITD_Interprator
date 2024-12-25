@@ -41,6 +41,11 @@ const std::string tokenNames[TOKEN_TYPES_COUNT] =
   "DAC",
   "TRUE",
   "FALSE",
+  "IF",
+  "ELIF",
+  "ELSE",
+  "FOR",
+  "WHILE",
 };
 
 const std::string getTokenTypeString(TokenType TYPE)
@@ -68,7 +73,12 @@ std::unordered_map<std::string, TokenType> keywords =
   {"Plag", PLAG},
   {"dac",  DAC},
   {"real", TRUE},
-  {"over", FALSE},
+  {"cap", FALSE},
+  {"if", IF},
+  {"yafir", ELIF},
+  {"ya", ELSE},
+  {"for", FOR},
+  {"while", WHILE},
 };
 
 TokenType lookUpKeywords(std::string &iden)
