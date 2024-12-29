@@ -1,30 +1,16 @@
+#pragma once 
 #include "../defines.h"
+#include "ast.h"
 #include "tokens.h"
 #include <vector>
-#include "program.h"
-#include "ast/binaryExpression.h"
-#include "ast/variableExpression.h"
-#include "ast/immediateExpression.h"
 
-class Parser 
+typedef struct Program
 {
-  private:
-    std::vector<Token>  tokens;
-    u64                 index; 
+  std::vector<Node> statements;
+} Program;
 
-    Token               peek() const;
-    Token               advance();
-    bool                match(TokenType TYPE);
-    Token               consume(TokenType TYPE, const std::string& EXCEPTION);
+FORGE_API bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM);
 
-    Statement*          parseStatement();
-    Expression*         parseExpression();
-    Expression*         parsePrimary();
-    BinaryExpr*         parseBinary(Expression* LEFT);
-    VariableExpr*       parseVariable();
-    ImmediateExpr*      parseImmediate();
 
-  public:
-    Parser(const std::vector<Token>& TOKENS);
-    Program parse();
-};
+FORGE_API Node parseAssignmentExpression();
+FORGE_API Node parseStatement();

@@ -1,142 +1,103 @@
 #include "../include/parser.h"
+#include "../library/include/asserts.h"
 #include "../library/include/logger.h"
 #include "../include/tokenizer.h"
+#include <vector>
+
+static Program* program;
+static std::vector<Token>* input = NULL;
+static u64 tokenIndex = 0;
 
 
-// - - - Parser constructor
-Parser::Parser(const std::vector<Token>& TOKENS) : tokens(TOKENS), index(0) {}
-
-
-
-// - - - Get working token - - -
-
-// - - - peek current token
-Token Parser::peek() const 
+bool match(TokenType EXPECTED_TYPE)
 {
-  if (index < tokens.size()) 
+  FORGE_ASSERT_MESSAGE(input != NULL, "Cannot begin matching before recieveing input");
+
+  if (tokenIndex < input->size() && input->at(tokenIndex).type == EXPECTED_TYPE)
   {
-    return tokens[index];
-  }
-  FORGE_LOG_ERROR("Parser has no more tokens to peek");
-  return Token {":(", ILLEGAL};
-}
-
-// - - - goto the next token
-Token Parser::advance() 
-{
-  if (index < tokens.size()) 
-  {
-    return tokens[index++];
-  }
-  FORGE_LOG_ERROR("Parser has no more tokens to advance");
-  return Token {":(", ILLEGAL};
-}
-
-
-// - - - use a token - - -
-
-// - - - see if token matches what we want
-bool Parser::match(TokenType TYPE) 
-{
-  if (peek().type == TYPE) 
-  {
-    advance();
+    tokenIndex++;
     return true;
   }
+  FORGE_LOG_FATAL("Syntax error : at token index %d, expected a type of %s but recieved %s", 
+                  tokenIndex, 
+                  getTokenTypeString(EXPECTED_TYPE).c_str(), 
+                  getTokenTypeString(input->at(tokenIndex).type).c_str());
   return false;
 }
 
-// - - - use the token and destroy it
-Token Parser::consume(TokenType TYPE, const std::string& EXCEPTION) 
+
+Node parseStatement()
 {
-  if (match(TYPE)) 
+  FORGE_ASSERT_MESSAGE(input != NULL, "Cannot begin parsing before recieveing input");
+
+  Token token = input->at(tokenIndex); 
+
+  switch (token.type)
   {
-    return tokens[index - 1];
-  }
-  FORGE_LOG_ERROR(EXCEPTION.c_str());
-  return Token {":(", ILLEGAL};
-}
-
-
-// - - - Parse Stuff - - - 
-
-// - - - NOTE: A statement != expression. A program is made of statements not expressions
-Statement* Parser::parseStatement()
-{
-  // - - - WARNING: Incomplete
-  return parseExpression();
-}
-
-// - - - parse an expression
-Expression* Parser::parseExpression() 
-{
-  Expression* left = parsePrimary();
-
-  // - - - Check for binary operator
-  if (match(BINARY_OPERATOR)) 
-  {
-    return parseBinary(left);
-  }
-
-  return left;
-}
-
-// - - - parse the first visible expression
-Expression* Parser::parsePrimary() 
-{
-  Token token = peek();
-
-  switch (token.type) 
-  {
-    case NUMBER:
-      return parseImmediate();
-
-    case IDENTIFIER:
-      return parseVariable();
+    case PLAG: 
+      return parseAssignmentExpression();
 
     default:
-      FORGE_LOG_ERROR("%s is currently unsupported by the parser", getTokenTypeString(token.type).c_str());
+      FORGE_LOG_FATAL("Not yet handled parsing of %s", getTokenTypeString(token.type).c_str());
       exit(1);
   }
 }
 
-// - - - parse a number expression
-ImmediateExpr* Parser::parseImmediate() 
+Node parseAssignmentExpression()
 {
-  Token token = consume(NUMBER, "Expected a number");
-  u64   value = std::stoull(token.literal);
-  return new ImmediateExpr(value);
-}
+  Token token = input->at(tokenIndex);
 
-// - - - parse a variable expression
-VariableExpr* Parser::parseVariable() 
-{
-  Token token = consume(IDENTIFIER, "Expected an identifier");
-
-  // - - - WARNING: acche se address nahi dala hai yet and assumed size is 64
-  return new VariableExpr(token.literal, 0, 64);
-}
-
-// - - - parse an expression with some sort of operation
-BinaryExpr* Parser::parseBinary(Expression* LEFT) 
-{
-  Token operatorToken   = consume(BINARY_OPERATOR, "Expected a binary operator");
-  Expression *right     = parseExpression();
-
-  return new BinaryExpr(LEFT, right, ADDITION);
-}
-
-
-// - - - The useful function to parse everything and construct a program out of it
-Program Parser::parse() 
-{
-  Program program;
-
-  while (index < tokens.size()) 
+  if (!match(PLAG))
   {
-    Statement* expression = parseStatement();
-    program.statements.push_back(*expression);
+    FORGE_LOG_ERROR("Syntax error in Plag statement");
+    exit(1);
   }
 
-  return program;
+  if (!match(IDENTIFIER))
+  {
+    FORGE_LOG_ERROR("Uh oh, Sakshat did not look at TODO and code me. Dies.");
+    exit(1);
+  }
+
+  std::string variableName = input->at(tokenIndex - 1).literal;
+
+  if (!match(EQUALS))
+  {
+    FORGE_LOG_ERROR("Syntax error : expected '=' after variableName");
+    exit(1);
+  }
+
+  // - - - TODO: make this its own function and be ready to assign any node to a variable
+  if (!match(NUMBER))
+  {
+    FORGE_LOG_ERROR("Uh oh, Sakshat did not look at TODO and code me. Dies.");
+    exit(1);
+  }
+    
+  Node rhs;
+  initNumberNode(&rhs, std::stoi(token.literal));
+
+  program->statements.push_back(rhs);
+
+  Node assigmentNode;
+  initAssignmentNode(&assigmentNode, variableName, &rhs);
+
+  return assigmentNode;
+}
+
+bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
+{
+  FORGE_ASSERT_MESSAGE(TOKENS != NULL, "TOKENS cannot be NULL to construct a program");
+  FORGE_ASSERT_MESSAGE(PROGRAM != NULL, "Program cannot be NULL to construct a program");
+
+  input = TOKENS;
+  program = PROGRAM;
+  tokenIndex = 0;
+
+  while (tokenIndex < input->size())
+  {
+    program->statements.push_back(parseStatement()); 
+  }
+
+  return true;
 }
