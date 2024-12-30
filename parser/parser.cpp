@@ -26,7 +26,7 @@ bool match(TokenType EXPECTED_TYPE)
 }
 
 
-Node parseStatement()
+Node* parseStatement()
 {
   FORGE_ASSERT_MESSAGE(input != NULL, "Cannot begin parsing before recieveing input");
 
@@ -43,7 +43,7 @@ Node parseStatement()
   }
 }
 
-Node parseAssignmentExpression()
+Node* parseAssignmentExpression()
 {
   Token token = input->at(tokenIndex);
 
@@ -73,22 +73,22 @@ Node parseAssignmentExpression()
     FORGE_LOG_ERROR("Uh oh, Sakshat did not look at TODO and code me. Dies.");
     exit(1);
   }
-    
-  Node rhs;
+   
+  Node* rhs = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
 
 
   // - - - TODO: @Sakshat
   FORGE_LOG_WARNING("Sleepy : cant figure out how to make integer out of strint");
   FORGE_LOG_WARNING("Token literl %s", token.literal.c_str());
-  initNumberNode(&rhs, 5);
+  initNumberNode(rhs, 5);
 
   program->statements.push_back(rhs);
 
 
   // - - - WARNING: @Sakshat, this reference is wrong. The reference shouldnt be from a call stack variable but from the program vector 
   // - - - WARNING: at the moment I am too sleepy to make a tree structure. If you want me I would
-  Node assigmentNode;
-  initAssignmentNode(&assigmentNode, variableName, &rhs);
+  Node* assigmentNode = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  initAssignmentNode(assigmentNode, variableName, rhs);
 
   return assigmentNode;
 }
@@ -106,6 +106,8 @@ bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
   {
     program->statements.push_back(parseStatement()); 
   }
+
+  destroyLinearAllocator(&program->allocator);
 
   return true;
 }

@@ -2,6 +2,7 @@
 #include "include/tokenizer.h"
 #include "include/parser.h"
 #include "library/include/filesystem.h"
+#include "library/include/linearAlloc.h"
 #include "library/include/logger.h"
 
 int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[]) 
@@ -45,11 +46,13 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
       printTokens(&tokens);
 
       Program program;
+      // - - - TODO: @Sakshat, this 1024 bytes for nodes is completely arbitrary, you might want to make this bigger or proportional to the number of tokens
+      createLinearAllocator(1024, NULL, &program.allocator);
       produceAST(&tokens, &program);
 
-      for (Node node : program.statements)
+      for (Node* node : program.statements)
       {
-        FORGE_LOG_DEBUG(getNodeString(&node).c_str());
+        FORGE_LOG_DEBUG(getNodeString(node).c_str());
       }
       return 0;
     }

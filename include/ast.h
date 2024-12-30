@@ -31,23 +31,27 @@ typedef union NodeContext
 {
   struct 
   {
-    i64 value;   
+    u64 value;   
   } numberContext;
+
   struct 
   {
     struct Node*      left;
     struct Node*      right;
     BinaryOperator    opcode;
   } binaryContext;
+
   struct 
   {
     const char*       name;
   } variableContext;
+
   struct 
   {
     const char*       name;
     struct Node*      value;
   } assignmentContext;
+
 } NodeContext;
 
 // - - - the mighty ast node
