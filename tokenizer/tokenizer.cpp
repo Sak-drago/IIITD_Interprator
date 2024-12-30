@@ -100,7 +100,7 @@ std::vector<Token> tokenize(const char* SRC_CODE)
   std::vector<Token> tokens;
   // - - - a copy because we dont want to modify the original string
   const char*        src                   = SRC_CODE;
-  int                start                 = 0;
+//int                start                 = 0;
   int                current               = 0;
 
   while (src[current] != '\0' && src[current] != '\n')

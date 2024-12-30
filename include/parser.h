@@ -10,7 +10,5 @@ typedef struct Program
 } Program;
 
 FORGE_API bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM);
-
-
 FORGE_API Node parseAssignmentExpression();
 FORGE_API Node parseStatement();

@@ -2,14 +2,15 @@
 CXX = clang++
 
 # Compiler flags
-CXXFLAGS = -std=c++17 -Wall -Wextra
+CXXFLAGS = -std=c++17 -Wall -Wextra -Werror -g
 
 # Include directories
-INCLUDES = -I./tests -I./tokenizer
+INCLUDES = -I./tests -I./tokenizer -I./parser
 
 # Source directories
 TESTS_DIR = tests
 TOKENIZER_DIR = tokenizer
+PARSER_DIR = parser
 
 # Output directories
 BIN_DIR = bin
@@ -33,19 +34,20 @@ MAIN_BIN = $(BIN_DIR)/main
 # Object files (for modularity and reuse)
 MAIN_OBJ = $(OBJ_DIR)/main.o
 TOKENIZER_OBJS = $(patsubst $(TOKENIZER_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(wildcard $(TOKENIZER_DIR)/*.cpp))
+PARSER_OBJS = $(patsubst $(PARSER_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(wildcard $(PARSER_DIR)/*.cpp))
 
 # Default target: build all binaries
 all: $(TEST_BINS) $(MAIN_BIN)
 
 # Rule to build main binary
-$(MAIN_BIN): $(MAIN_OBJ) $(TOKENIZER_OBJS)
+$(MAIN_BIN): $(MAIN_OBJ) $(TOKENIZER_OBJS) $(PARSER_OBJS)
 	@mkdir -p $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $^ -o $@ -L$(LIBDIR) $(LIBS) $(RPATH)
 
 # Rule to build each test binary
-$(BIN_DIR)/%: $(TESTS_DIR)/%.cpp $(TOKENIZER_OBJS)
+$(BIN_DIR)/%: $(TESTS_DIR)/%.cpp $(TOKENIZER_OBJS) $(PARSER_OBJS)
 	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $< $(TOKENIZER_OBJS) -o $@ -L$(LIBDIR) $(LIBS) $(RPATH)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $< $(TOKENIZER_OBJS) $(PARSER_OBJS) -o $@ -L$(LIBDIR) $(LIBS) $(RPATH)
 
 # Rule to compile main.o
 $(OBJ_DIR)/main.o: $(MAIN_SRC)
@@ -54,6 +56,11 @@ $(OBJ_DIR)/main.o: $(MAIN_SRC)
 
 # Rule to compile object files for tokenizer
 $(OBJ_DIR)/%.o: $(TOKENIZER_DIR)/%.cpp
+	@mkdir -p $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
+# Rule to compile object files for parser
+$(OBJ_DIR)/%.o: $(PARSER_DIR)/%.cpp
 	@mkdir -p $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "../defines.h"
 
+
 // - - - Binary AST Node specific
 typedef enum BinaryOperator
 {
@@ -15,7 +16,6 @@ typedef enum BinaryOperator
 
 // - - - AST Node related structs - - - 
 
-
 // - - - all the types of Nodes in our AST
 typedef enum NodeType
 {
@@ -23,7 +23,6 @@ typedef enum NodeType
   NODE_TYPE_VARIABLE,                   // - - - x
   NODE_TYPE_BINARY_OPERATOR,            // - - - +
   NODE_TYPE_ASSIGNMENT,                 // - - - =
-
   NODE_TYPE_COUNT                       // - - - keep a count of all type of nodes
 } NodeType;
 
@@ -34,25 +33,21 @@ typedef union NodeContext
   {
     i64 value;   
   } numberContext;
-
   struct 
   {
     struct Node*      left;
     struct Node*      right;
     BinaryOperator    opcode;
   } binaryContext;
-
   struct 
   {
-    std::string       name;
+    const char*       name;
   } variableContext;
-
   struct 
   {
-    std::string       name;
+    const char*       name;
     struct Node*      value;
   } assignmentContext;
-
 } NodeContext;
 
 // - - - the mighty ast node
@@ -66,7 +61,7 @@ typedef struct Node
 // - - - AST Node related Functions - - - 
 
 // - - - initialize nodes of each type
-FORGE_API bool        initNumberNode       (Node* NODE, int VALUE);
+FORGE_API bool        initNumberNode       (Node* NODE, u64 VALUE);
 
 FORGE_API bool        initBinaryOpNode     (Node* NODE, Node* LEFT_NODE, Node* RIGHT_NODE, BinaryOperator OPCODE);
 

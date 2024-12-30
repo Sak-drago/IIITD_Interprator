@@ -61,7 +61,7 @@ Node parseAssignmentExpression()
 
   std::string variableName = input->at(tokenIndex - 1).literal;
 
-  if (!match(EQUALS))
+  if (!match(ASSIGN))
   {
     FORGE_LOG_ERROR("Syntax error : expected '=' after variableName");
     exit(1);
@@ -75,10 +75,18 @@ Node parseAssignmentExpression()
   }
     
   Node rhs;
-  initNumberNode(&rhs, std::stoi(token.literal));
+
+
+  // - - - TODO: @Sakshat
+  FORGE_LOG_WARNING("Sleepy : cant figure out how to make integer out of strint");
+  FORGE_LOG_WARNING("Token literl %s", token.literal.c_str());
+  initNumberNode(&rhs, 5);
 
   program->statements.push_back(rhs);
 
+
+  // - - - WARNING: @Sakshat, this reference is wrong. The reference shouldnt be from a call stack variable but from the program vector 
+  // - - - WARNING: at the moment I am too sleepy to make a tree structure. If you want me I would
   Node assigmentNode;
   initAssignmentNode(&assigmentNode, variableName, &rhs);
 

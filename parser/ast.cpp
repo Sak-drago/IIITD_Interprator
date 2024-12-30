@@ -53,7 +53,7 @@ bool initVariableNode(Node* NODE, std::string& NAME)
   // - - - TODO - Check if variable has not been already initalized.
   
   NODE->type                            = NODE_TYPE_VARIABLE;
-  NODE->context.variableContext.name    = NAME;
+  NODE->context.variableContext.name    = strdup(NAME.c_str());
 
   return false;
 }
@@ -69,7 +69,7 @@ bool initAssignmentNode(Node* NODE, std::string& NAME, Node* VALUE)
   }
 
   NODE->type                            = NODE_TYPE_ASSIGNMENT;
-  NODE->context.assignmentContext.name  = NAME;
+  NODE->context.assignmentContext.name  = strdup(NAME.c_str());
   NODE->context.assignmentContext.value = VALUE;
 
   return true;
@@ -128,7 +128,7 @@ std::string getNodeString (Node* NODE)
       break;
 
     case NODE_TYPE_VARIABLE:
-      retVal += "Name : " + NODE->context.variableContext.name;
+      retVal += "Name : " + std::string(NODE->context.variableContext.name);
       break;
 
     case NODE_TYPE_BINARY_OPERATOR:
@@ -140,14 +140,13 @@ std::string getNodeString (Node* NODE)
       
     case NODE_TYPE_ASSIGNMENT:
       // - - - WARNING: Another potential infinite recursion 
-      retVal += "Name : "           + NODE->context.assignmentContext.name;
+      retVal += "Name : "           + std::string(NODE->context.assignmentContext.name);
       retVal += "\nValue : "        + getNodeString(NODE->context.assignmentContext.value);
       break;
 
     default:
+      FORGE_LOG_ERROR("Fuck you");
       FORGE_ASSERT_MESSAGE(true, "Ek baar me samajh nahi aata kya? Tu yahan tak aaya kaise bhai. Agar likha hai maine ki it is to keep a count of all types of variables. It is not a type of Node itself.");
   }
-
-  FORGE_LOG_FATAL("Fuck you");
-  return nullptr; // - - - fuck you
+  return retVal + " }";
 }

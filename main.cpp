@@ -1,4 +1,6 @@
+#include "include/ast.h"
 #include "include/tokenizer.h"
+#include "include/parser.h"
 #include "library/include/filesystem.h"
 #include "library/include/logger.h"
 
@@ -41,6 +43,14 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
       std::vector<Token> tokens = tokenize(ARGUMENT_VECTOR[2]);
       FORGE_LOG_INFO("%d Tokens generated out of source code : %s", tokens.size(), ARGUMENT_VECTOR[2]);
       printTokens(&tokens);
+
+      Program program;
+      produceAST(&tokens, &program);
+
+      for (Node node : program.statements)
+      {
+        FORGE_LOG_DEBUG(getNodeString(&node).c_str());
+      }
       return 0;
     }
   }
