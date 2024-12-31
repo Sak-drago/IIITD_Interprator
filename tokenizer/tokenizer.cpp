@@ -46,6 +46,7 @@ const std::string tokenNames[TOKEN_TYPES_COUNT] =
   "ELSE",
   "FOR",
   "WHILE",
+  "RETURN",
 };
 
 const std::string getTokenTypeString(TokenType TYPE)
@@ -79,6 +80,7 @@ std::unordered_map<std::string, TokenType> keywords =
   {"ya", ELSE},
   {"for", FOR},
   {"while", WHILE},
+  {"return", RETURN},
 };
 
 TokenType lookUpKeywords(std::string &iden)

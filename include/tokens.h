@@ -28,6 +28,7 @@ typedef enum TokenType
   ELSE,
   FOR,
   WHILE,
+  RETURN,
   TOKEN_TYPES_COUNT,
 } TokenType;
 

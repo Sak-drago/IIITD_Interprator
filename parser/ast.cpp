@@ -91,7 +91,6 @@ std::string getNodeTypeString(NodeType TYPE)
       FORGE_ASSERT_MESSAGE(true, "Tu yahan tak aaya kaise bhai. Agar likha hai maine ki it is to keep a count of all types of variables. It is not a type of Node itself.");
   }
 
-  FORGE_LOG_FATAL("Fuck you");
   return nullptr; // - - - fuck you
 }
 
@@ -145,7 +144,6 @@ std::string getNodeString (Node* NODE)
       break;
 
     default:
-      FORGE_LOG_ERROR("Fuck you");
       FORGE_ASSERT_MESSAGE(true, "Ek baar me samajh nahi aata kya? Tu yahan tak aaya kaise bhai. Agar likha hai maine ki it is to keep a count of all types of variables. It is not a type of Node itself.");
   }
   return retVal + " }";

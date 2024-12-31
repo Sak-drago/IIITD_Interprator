@@ -54,6 +54,8 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
       {
         FORGE_LOG_DEBUG(getNodeString(node).c_str());
       }
+
+      destroyLinearAllocator(&program.allocator);
       return 0;
     }
   }
