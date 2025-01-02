@@ -2,7 +2,7 @@
 CXX = clang++
 
 # Compiler flags
-CXXFLAGS = -std=c++17 -Wall -Wextra -Werror -g
+CXXFLAGS = -std=c++17 -Wall -Wextra -g
 
 # Include directories
 INCLUDES = -I./tests -I./tokenizer -I./parser

@@ -55,7 +55,7 @@ bool initVariableNode(Node* NODE, std::string& NAME)
   NODE->type                            = NODE_TYPE_VARIABLE;
   NODE->context.variableContext.name    = strdup(NAME.c_str());
 
-  return false;
+  return true;
 }
 
 // - - - initiliaze an assignment node
@@ -75,6 +75,22 @@ bool initAssignmentNode(Node* NODE, std::string& NAME, Node* VALUE)
   return true;
 }
 
+// - - - initialize a return node
+bool initReturnNode(Node* NODE, Node* VALUE)
+{
+  FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST Return Node");
+
+  if (VALUE == NULL)
+  {
+    FORGE_LOG_WARNING("The Node passed as VALUE for AST Return Node intiailization is null");
+  }
+
+  NODE->type                          = NODE_TYPE_RETURN;
+  NODE->context.returnContext.value   = VALUE;
+
+  return true;
+}
+
 
 // - - - Print Nodes - - - 
 
@@ -86,12 +102,13 @@ std::string getNodeTypeString(NodeType TYPE)
     case NODE_TYPE_VARIABLE         : return "NODE_TYPE_VARIABLE";
     case NODE_TYPE_NUMBER           : return "NODE_TYPE_NUMBER";
     case NODE_TYPE_BINARY_OPERATOR  : return "NODE_TYPE_ASSIGNMENT";
+    case NODE_TYPE_RETURN           : return "NODE_TYPE_RETURN";
 
     default:
       FORGE_ASSERT_MESSAGE(true, "Tu yahan tak aaya kaise bhai. Agar likha hai maine ki it is to keep a count of all types of variables. It is not a type of Node itself.");
   }
 
-  return nullptr; // - - - fuck you
+  return nullptr; // - - - fuck you - - - No
 }
 
 std::string getBinaryOperatorString(BinaryOperator TYPE)
@@ -116,6 +133,8 @@ std::string getNodeString (Node* NODE)
   }
 
   // - - - TODO: @Sakshat : make this code pretty
+  // - - - @Asher: I tried ;-;
+
   std::string retVal  = "{ ";
   retVal              += getNodeTypeString(NODE->type);
   retVal              += " \t| Context : ";
@@ -123,11 +142,11 @@ std::string getNodeString (Node* NODE)
   switch (NODE->type)
   {
     case NODE_TYPE_NUMBER:
-      retVal += "Value : " + std::to_string(NODE->context.numberContext.value);
+      retVal += "\tValue : " + std::to_string(NODE->context.numberContext.value);
       break;
 
     case NODE_TYPE_VARIABLE:
-      retVal += "Name : " + std::string(NODE->context.variableContext.name);
+      retVal += "\tName : " + std::string(NODE->context.variableContext.name);
       break;
 
     case NODE_TYPE_BINARY_OPERATOR:
@@ -139,12 +158,16 @@ std::string getNodeString (Node* NODE)
       
     case NODE_TYPE_ASSIGNMENT:
       // - - - WARNING: Another potential infinite recursion 
-      retVal += "Name : "           + std::string(NODE->context.assignmentContext.name);
+      retVal += "\tName : "           + std::string(NODE->context.assignmentContext.name);
       retVal += "\nValue : "        + getNodeString(NODE->context.assignmentContext.value);
       break;
 
+    case NODE_TYPE_RETURN:
+      retVal+= "\n\tValue : "         + getNodeString(NODE->context.returnContext.value);
+      break;
+  
     default:
       FORGE_ASSERT_MESSAGE(true, "Ek baar me samajh nahi aata kya? Tu yahan tak aaya kaise bhai. Agar likha hai maine ki it is to keep a count of all types of variables. It is not a type of Node itself.");
   }
-  return retVal + " }";
+  return retVal + "}";
 }

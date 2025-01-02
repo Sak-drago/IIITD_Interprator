@@ -46,8 +46,8 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
       printTokens(&tokens);
 
       Program program;
-      // - - - TODO: @Sakshat, this 1024 bytes for nodes is completely arbitrary, you might want to make this bigger or proportional to the number of tokens
-      createLinearAllocator(1024, NULL, &program.allocator);
+      // - - - 1 MB assigned for now
+      createLinearAllocator(1024 * 1024, NULL, &program.allocator);
       produceAST(&tokens, &program);
 
       for (Node* node : program.statements)

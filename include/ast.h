@@ -1,5 +1,6 @@
 #pragma once
 #include "../defines.h"
+#include "../include/tokens.h"
 
 
 // - - - Binary AST Node specific
@@ -22,6 +23,7 @@ typedef enum NodeType
   NODE_TYPE_NUMBER,                     // - - - 5
   NODE_TYPE_VARIABLE,                   // - - - x
   NODE_TYPE_BINARY_OPERATOR,            // - - - +
+  NODE_TYPE_RETURN,                     // - - - return
   NODE_TYPE_ASSIGNMENT,                 // - - - =
   NODE_TYPE_COUNT                       // - - - keep a count of all type of nodes
 } NodeType;
@@ -52,11 +54,17 @@ typedef union NodeContext
     struct Node*      value;
   } assignmentContext;
 
+  struct 
+  {
+    struct Node*      value;
+  } returnContext;
+  
 } NodeContext;
 
 // - - - the mighty ast node
 typedef struct Node 
 {
+  Token        token;
   NodeType      type;
   NodeContext   context;
 } Node;
@@ -72,6 +80,8 @@ FORGE_API bool        initBinaryOpNode     (Node* NODE, Node* LEFT_NODE, Node* R
 FORGE_API bool        initVariableNode     (Node* NODE, std::string& NAME);
 
 FORGE_API bool        initAssignmentNode   (Node* NODE, std::string& NAME, Node* VALUE);
+
+FORGE_API bool       initReturnNode       (Node* NODE, Node* VALUE);
 
 // - - - print a node
 FORGE_API std::string getNodeTypeString (NodeType TYPE);
