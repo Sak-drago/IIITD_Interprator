@@ -108,14 +108,19 @@ Node* parseExpression(int precedence)
   Token token = input->at(tokenIndex);
   Node*(*prefix)(void*) = prefixParseFunctions[token.type];
   Node* left = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  if(left == NULL)
+  {
+    FORGE_LOG_ERROR("Failed to allocate memory for left node");
+    exit(1);
+  }
   allocCount++;
   if(prefix == NULL)
   {
     FORGE_LOG_ERROR("Syntax error : expected a prefix parse function for token type %s", getTokenTypeString(input->at(tokenIndex).type).c_str());
     exit(1);
   }
-  
   left = prefix((void*)left);
+  tokenIndex++;
 
   return left;
 }
