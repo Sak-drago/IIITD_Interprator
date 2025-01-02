@@ -25,6 +25,7 @@ typedef enum NodeType
   NODE_TYPE_BINARY_OPERATOR,            // - - - +
   NODE_TYPE_RETURN,                     // - - - return
   NODE_TYPE_ASSIGNMENT,                 // - - - =
+  NODE_TYPE_PREFIX,                    // - - - ++x/!x
   NODE_TYPE_COUNT                       // - - - keep a count of all type of nodes
 } NodeType;
 
@@ -33,7 +34,7 @@ typedef union NodeContext
 {
   struct 
   {
-    u64 value;   
+    i64 value;   
   } numberContext;
 
   struct 
@@ -59,6 +60,12 @@ typedef union NodeContext
     struct Node*      value;
   } returnContext;
   
+  struct
+  {
+    const char* operatorType;
+    struct Node* right;
+  } prefixContext;
+  
 } NodeContext;
 
 // - - - the mighty ast node
@@ -83,6 +90,7 @@ FORGE_API bool        initAssignmentNode   (Node* NODE, std::string& NAME, Node*
 
 FORGE_API bool       initReturnNode       (Node* NODE, Node* VALUE);
 
+FORGE_API bool      initPrefixNode       (Node* NODE, const char* OPERATOR, Node* RIGHT);
 // - - - print a node
 FORGE_API std::string getNodeTypeString (NodeType TYPE);
 

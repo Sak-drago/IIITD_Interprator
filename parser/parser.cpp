@@ -8,7 +8,6 @@
 static Program* program;
 static std::vector<Token>* input = NULL;
 static u64 tokenIndex = 0;
-static u64 allocCount = 0;
 std::unordered_map<TokenType, Node*(*)(void*)> prefixParseFunctions;
 std::unordered_map<TokenType, Node*(*)(void*)> infixParseFunctions;
 
@@ -81,6 +80,23 @@ Node* parseStatement()
 // Node* infixParseFunction()
 // {}
 
+Node* parsePrefixExpression(void* arg) 
+{
+  Token token = input->at(tokenIndex);
+  if(arg == NULL)
+  {
+    FORGE_LOG_ERROR("Cannot initialize a NULL AST Prefix Node");
+    exit(1);
+  }
+  std::string operatorType = token.literal;
+  tokenIndex++;
+  Node* right = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  right = parseExpression(Precedence::NOT_PRECEDENCE);
+  initPrefixNode((Node*) arg, operatorType.c_str(), right);
+  return (Node*)arg;
+}
+
+
 Node* parseIdentifier(void* arg)
 {
   Token token = input->at(tokenIndex);
@@ -91,13 +107,26 @@ Node* parseIdentifier(void* arg)
   }
   std::string variName = token.literal;
   initVariableNode((Node*) arg, variName);
+  tokenIndex++;
+  return (Node*)arg;
+}
+
+Node* parseInteger(void* arg)
+{
+  Token token = input->at(tokenIndex);
+  if(arg == NULL)
+  {
+    FORGE_LOG_ERROR("Cannot initialize a NULL AST Number Node");
+    exit(1);
+  }
+  initNumberNode((Node*) arg, std::stoi(token.literal));
+  tokenIndex++;
   return (Node*)arg;
 }
 
 Node* parseExpressionStatement()
 {
   Node* expression = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  allocCount++;
   expression = parseExpression(Precedence::EQUALS_PRECEDENCE); 
 
   return expression;
@@ -108,19 +137,12 @@ Node* parseExpression(int precedence)
   Token token = input->at(tokenIndex);
   Node*(*prefix)(void*) = prefixParseFunctions[token.type];
   Node* left = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  if(left == NULL)
-  {
-    FORGE_LOG_ERROR("Failed to allocate memory for left node");
-    exit(1);
-  }
-  allocCount++;
   if(prefix == NULL)
   {
     FORGE_LOG_ERROR("Syntax error : expected a prefix parse function for token type %s", getTokenTypeString(input->at(tokenIndex).type).c_str());
     exit(1);
   }
   left = prefix((void*)left);
-  tokenIndex++;
 
   return left;
 }
@@ -172,9 +194,7 @@ Node* parseReturnStatement()
   }
 
   Node* returnNode = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  allocCount++;
   Node* value = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  allocCount++;
   initNumberNode(value, std::stoi(input->at(tokenIndex).literal));
   initReturnNode(returnNode, value);
   tokenIndex++;
@@ -211,12 +231,10 @@ Node* parseAssignmentExpression()
 
   // - - - TODO: @Asher: Right now, I have just assumed that we have an integer as the token and not an expression.
   Node* rhs = (Node*) linearAllocatorAllocate(&program->allocator,sizeof(Node));
-  allocCount++;
   initNumberNode(rhs, std::stoi(input->at(tokenIndex).literal));
   tokenIndex++;
 
   Node* assigmentNode = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  allocCount++;
   initAssignmentNode(assigmentNode, variableName, rhs);
   return assigmentNode;
 }
@@ -231,7 +249,9 @@ bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
   tokenIndex = 0;
 
   // - - - Registering the prefix parse functions
+  registerPrefix(NOT, parsePrefixExpression);
   registerPrefix(IDENTIFIER, parseIdentifier);
+  registerPrefix(NUMBER, parseInteger);
 
   while (tokenIndex < input->size())
   {

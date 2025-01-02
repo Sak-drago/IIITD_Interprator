@@ -14,7 +14,9 @@ typedef struct Program
 FORGE_API bool  produceAST(std::vector<Token>* TOKENS, Program* PROGRAM);
 FORGE_API Node* parseNumber();
 FORGE_API Node* parseExpression(int precedence);
-FORGE_API Node* parseIdentifier();
+FORGE_API Node* parseIdentifier(void* arg);
+FORGE_API Node* parsePrefixExpression(void* arg);
+FORGE_API Node* parseInteger(void* arg);
 FORGE_API Node* parseExpressionStatement();
 FORGE_API Node* parseReturnStatement();
 FORGE_API Node* parseAssignmentExpression();
