@@ -1,3 +1,4 @@
+#include "../include/ast.h"
 #include "../include/parser.h"
 #include "../library/include/asserts.h"
 #include "../library/include/logger.h"
@@ -10,10 +11,12 @@ static std::vector<Token>* input = NULL;
 static u64 tokenIndex = 0;
 std::unordered_map<TokenType, Node*(*)(void*)> prefixParseFunctions;
 std::unordered_map<TokenType, Node*(*)(void*)> infixParseFunctions;
-
 // - - - Helper Methods - - -
 
+// - - - Precedence order
+// - - - TODO: @Asher: Just make the precedence equal. Right now, ">" > "<".
 typedef enum Precendence{
+  LOWEST,
   EQUALS_PRECEDENCE,
   NOT_EQUALS_PRECEDENCE,
   LESSER_PRECDEENCE,
@@ -22,8 +25,59 @@ typedef enum Precendence{
   GREATER_EQUALS_PRECEDENCE,
   BINARY_OPERATOR_PRECEDENCE,
   NOT_PRECEDENCE,
+  PRECEDENCE_COUNT, // - - - To keep count of items in order
 } Precedence;
 
+// - - - Precedence Mapping
+std::unordered_map<TokenType, Precedence> precedencesMapping =
+{
+  {EQUALS, EQUALS_PRECEDENCE},
+  {NOT_EQUALS, NOT_EQUALS_PRECEDENCE},
+  {LESSER, LESSER_PRECDEENCE},
+  {GREATER, GREATER_PRECEDENCE},
+  {LESSER_EQUAL, LESSER_EQUALS_PRECEDENCE},
+  {GREATER_EQUAL, GREATER_EQUALS_PRECEDENCE},
+  {BINARY_OPERATOR, BINARY_OPERATOR_PRECEDENCE},
+  {NOT, NOT_PRECEDENCE}
+};
+
+// - - - Checks what Precedence does the next token have
+int peekPrecedence()
+{
+  if (input->size() <= tokenIndex)
+  {
+    return LOWEST;
+  }
+
+  Token token = input->at(tokenIndex);
+
+  if (precedencesMapping.find(token.type) != precedencesMapping.end())
+  {
+    return precedencesMapping[token.type];
+  }
+
+  return LOWEST;
+}
+
+
+// - - - Binary Operator setter
+// - - - TODO: Asher: Make it pretty
+BinaryOperator getBinaryOperator(Token token)
+{
+  if (token.type == BINARY_OPERATOR)
+  {
+    if (token.literal == "+") return BINARY_OPERATOR_ADDITION;
+    if (token.literal == "-") return BINARY_OPERATOR_SUBTRACTION;
+    if (token.literal == "*") return BINARY_OPERATOR_MULTIPLICATION;
+    if (token.literal == "/") return BINARY_OPERATOR_DIVISION;
+    if (token.literal == "%") return BINARY_OPERATOR_REMAINDER;
+    if (token.literal == "^") return BINARY_OPERATOR_POWER;
+    FORGE_LOG_ERROR("How did you even get here Asher?");
+    exit(1);
+  }
+  FORGE_LOG_ERROR("How did you even get here Asher?");
+  exit(1);
+}
 bool match(TokenType EXPECTED_TYPE)
 {
   FORGE_ASSERT_MESSAGE(input != NULL, "Cannot begin matching before recieveing input");
@@ -74,12 +128,6 @@ Node* parseStatement()
 
 // - - - NOTE: Approach followed for parsing an expression is the "PRATT PARSER" approach.
 
-// Node* prefixParseFunction()
-// {}
-
-// Node* infixParseFunction()
-// {}
-
 Node* parsePrefixExpression(void* arg) 
 {
   Token token = input->at(tokenIndex);
@@ -90,12 +138,30 @@ Node* parsePrefixExpression(void* arg)
   }
   std::string operatorType = token.literal;
   tokenIndex++;
+
+  // - - - TODO: @Asher: Only supports "!" operator for now. Add support for "-" operator.
   Node* right = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
   right = parseExpression(Precedence::NOT_PRECEDENCE);
   initPrefixNode((Node*) arg, operatorType.c_str(), right);
   return (Node*)arg;
 }
 
+Node* parseInfixExpression(void* arg)
+{
+  Token token = input->at(tokenIndex);
+  if(arg == NULL)
+  {
+    FORGE_LOG_ERROR("Cannot initialize a NULL AST Binary Operator Node");
+    exit(1);
+  }
+  BinaryOperator opcode = getBinaryOperator(token);
+  int precedence = peekPrecedence();
+  tokenIndex++;
+  Node* right = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  right = parseExpression(precedence);
+  initBinaryOpNode((Node*) arg, (Node*) arg, right, opcode);
+  return (Node*)arg;
+}
 
 Node* parseIdentifier(void* arg)
 {
@@ -127,7 +193,7 @@ Node* parseInteger(void* arg)
 Node* parseExpressionStatement()
 {
   Node* expression = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  expression = parseExpression(Precedence::EQUALS_PRECEDENCE); 
+  expression = parseExpression(Precedence::LOWEST); 
 
   return expression;
 }
@@ -140,49 +206,22 @@ Node* parseExpression(int precedence)
   if(prefix == NULL)
   {
     FORGE_LOG_ERROR("Syntax error : expected a prefix parse function for token type %s", getTokenTypeString(input->at(tokenIndex).type).c_str());
-    exit(1);
   }
-  left = prefix((void*)left);
+  else left = prefix((void*)left);
+
+  while (precedence < peekPrecedence())
+  {
+    Node*(*infix)(void*) = infixParseFunctions[token.type];
+    if(infix == NULL)
+    {
+      FORGE_LOG_DEBUG("No Infix parser found for %s", getTokenTypeString(input->at(tokenIndex).type).c_str());
+      return left;
+    }
+    left = infix((void*)left);
+  }
 
   return left;
 }
-
-// - - - TODO: @Asher: Ignore this for now. I will check its relevancy later.
-// bool parseExpression(Node* rhs)
-// {
-//   Token token = input->at(tokenIndex);
-
-//   // - - - This is interesting. The Hashmap stores <TokenType, Node* (*)()> where the Node* (*)() is a function pointer to a function that returns a Node*.
-//   // - - - We create the left handside of expression. If there is no prefix parse function for the token type, we log an error.
-//   Node* (*prefix)(void*) = prefixParseFunctions[token.type];
-//   if(prefix == NULL)
-//   {
-//     FORGE_LOG_ERROR("Syntax error : expected a prefix parse function for token type %s", getTokenTypeString(token.type).c_str());
-//     return false;
-//   }
-
-//   // - - - Assigning the left of the expression the prefix.
-//   Node* left = prefix((void*) rhs);
-
-//   if (token.type == IDENTIFIER)
-//   {
-//     std::string idenName = token.literal;
-//     initVariableNode(rhs, idenName);
-//     tokenIndex++;
-//     return true;
-//   }
-
-//   if (token.type == NUMBER)
-//   {
-//     initNumberNode(rhs, std::stoi(token.literal));
-//     tokenIndex++;
-//     return true;
-//   }
-
-//   FORGE_LOG_ERROR("Syntax error : expected an IDENTIFIER or NUMBER but recieved %s", getTokenTypeString(token.type).c_str());
-//   return false;
-// }
-
 
 Node* parseReturnStatement()
 {
@@ -213,7 +252,7 @@ Node* parseAssignmentExpression()
 
   if (!match(IDENTIFIER))
   {
-    FORGE_LOG_ERROR("Uh oh, Sakshat did not look at TODO and code me. Dies.");
+    FORGE_LOG_ERROR("No variable to assign to.");
     exit(1);
   }
   
@@ -248,10 +287,17 @@ bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
   program = PROGRAM;
   tokenIndex = 0;
 
-  // - - - Registering the prefix parse functions
+  // - - - Registering the parse functions
   registerPrefix(NOT, parsePrefixExpression);
   registerPrefix(IDENTIFIER, parseIdentifier);
   registerPrefix(NUMBER, parseInteger);
+  registerInfix(EQUALS, parseInfixExpression);
+  registerInfix(NOT_EQUALS, parseInfixExpression);
+  registerInfix(LESSER, parseInfixExpression);
+  registerInfix(GREATER, parseInfixExpression);
+  registerInfix(LESSER_EQUAL, parseInfixExpression);
+  registerInfix(GREATER_EQUAL, parseInfixExpression);
+  registerInfix(BINARY_OPERATOR, parseInfixExpression);
 
   while (tokenIndex < input->size())
   {

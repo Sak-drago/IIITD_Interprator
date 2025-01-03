@@ -95,3 +95,5 @@ FORGE_API bool      initPrefixNode       (Node* NODE, const char* OPERATOR, Node
 FORGE_API std::string getNodeTypeString (NodeType TYPE);
 
 FORGE_API std::string getNodeString     (Node* NODE);
+
+FORGE_API std::string getBinaryOperatorString(BinaryOperator TYPE);
