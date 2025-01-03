@@ -42,7 +42,7 @@ std::unordered_map<TokenType, Precedence> precedencesMapping =
 };
 
 // - - - Checks what Precedence does the next token have
-int peekPrecedence()
+int curPrecedence()
 {
   if (input->size() <= tokenIndex)
   {
@@ -50,6 +50,23 @@ int peekPrecedence()
   }
 
   Token token = input->at(tokenIndex);
+
+  if (precedencesMapping.find(token.type) != precedencesMapping.end())
+  {
+    return precedencesMapping[token.type];
+  }
+
+  return LOWEST;
+}
+
+int peekPrecedence()
+{
+  if (input->size() <= tokenIndex+1)
+  {
+    return LOWEST;
+  }
+
+  Token token = input->at(tokenIndex+1);
 
   if (precedencesMapping.find(token.type) != precedencesMapping.end())
   {
@@ -75,7 +92,7 @@ BinaryOperator getBinaryOperator(Token token)
     FORGE_LOG_ERROR("How did you even get here Asher?");
     exit(1);
   }
-  FORGE_LOG_ERROR("How did you even get here Asher?");
+  FORGE_LOG_ERROR("How did you even get here Asher? Part 2, %s, %i", token.literal.c_str(), tokenIndex);
   exit(1);
 }
 bool match(TokenType EXPECTED_TYPE)
@@ -121,6 +138,7 @@ Node* parseStatement()
     case RETURN:
       FORGE_LOG_DEBUG("Parsing a RETURN statement");
       return parseReturnStatement();
+
     default:
       return parseExpressionStatement();
   }
@@ -148,19 +166,23 @@ Node* parsePrefixExpression(void* arg)
 
 Node* parseInfixExpression(void* arg)
 {
+  Node* left = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
   Token token = input->at(tokenIndex);
   if(arg == NULL)
   {
     FORGE_LOG_ERROR("Cannot initialize a NULL AST Binary Operator Node");
     exit(1);
   }
+
   BinaryOperator opcode = getBinaryOperator(token);
-  int precedence = peekPrecedence();
+  int precedence = curPrecedence();
   tokenIndex++;
+
   Node* right = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  if (precedence == Precedence::NOT_PRECEDENCE) right = parsePrefixExpression(right);
   right = parseExpression(precedence);
-  initBinaryOpNode((Node*) arg, (Node*) arg, right, opcode);
-  return (Node*)arg;
+  initBinaryOpNode(left, (Node*)arg , right, opcode);
+  return left;
 }
 
 Node* parseIdentifier(void* arg)
@@ -186,7 +208,6 @@ Node* parseInteger(void* arg)
     exit(1);
   }
   initNumberNode((Node*) arg, std::stoi(token.literal));
-  tokenIndex++;
   return (Node*)arg;
 }
 
@@ -194,29 +215,33 @@ Node* parseExpressionStatement()
 {
   Node* expression = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
   expression = parseExpression(Precedence::LOWEST); 
-
   return expression;
 }
 
 Node* parseExpression(int precedence)
 {
   Token token = input->at(tokenIndex);
-  Node*(*prefix)(void*) = prefixParseFunctions[token.type];
+  auto it = prefixParseFunctions.find(token.type);
   Node* left = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  if(prefix == NULL)
+  if(it == prefixParseFunctions.end())
   {
     FORGE_LOG_ERROR("Syntax error : expected a prefix parse function for token type %s", getTokenTypeString(input->at(tokenIndex).type).c_str());
   }
-  else left = prefix((void*)left);
-
+  else
+  {
+    Node*(*prefix)(void*) = it->second;
+    left = prefix((void*)left);
+  }
   while (precedence < peekPrecedence())
   {
-    Node*(*infix)(void*) = infixParseFunctions[token.type];
-    if(infix == NULL)
+    tokenIndex++;
+    auto it = infixParseFunctions.find(input->at(tokenIndex).type);
+    if(it == infixParseFunctions.end())
     {
-      FORGE_LOG_DEBUG("No Infix parser found for %s", getTokenTypeString(input->at(tokenIndex).type).c_str());
+      FORGE_LOG_DEBUG("No Infix parser found for %d", input->at(tokenIndex).type);
       return left;
     }
+    Node*(*infix)(void*) = it->second;
     left = infix((void*)left);
   }
 
@@ -302,6 +327,7 @@ bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
   while (tokenIndex < input->size())
   {
     program->statements.push_back(parseStatement()); 
+    tokenIndex++;
   }
 
   return true;

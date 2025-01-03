@@ -2,10 +2,18 @@
 #include "../library/include/asserts.h"
 #include "../library/include/logger.h"
 #include <string>
+#include <sstream>
 
+// - - - Helper Functions - - -
+
+// - - - Get the unique ID of a node
+std::string getNodeID(Node* node) {
+    std::ostringstream oss;
+    oss << node; // Use the pointer address as a unique ID
+    return oss.str();
+}
 
 // - - - Initialize all node types - - - 
-
 // - - - number nodes
 bool initNumberNode(Node* NODE, u64 VALUE)
 {
@@ -137,60 +145,69 @@ std::string getBinaryOperatorString(BinaryOperator TYPE)
     case BINARY_OPERATOR_MULTIPLICATION : return "BINARY_OPERATOR_MULTIPLICATION(*)";
     case BINARY_OPERATOR_DIVISION       : return "BINARY_OPERATOR_DIVISION(/)";
     case BINARY_OPERATOR_REMAINDER      : return "BINARY_OPERATOR_REMAINDER(%)";
-    case BINARY_OPERATOR_POWER          : return "BINARY_OPERATOR_ADDITION(^)";
+    case BINARY_OPERATOR_POWER          : return "BINARY_OPERATOR_POWER(^)";
   }
 }
 
-std::string getNodeString (Node* NODE)
+std::string getNodeString(Node* NODE)
 {
-  if (NODE == NULL)
-  {
-    FORGE_LOG_WARNING("Printing a NULL Node");
-    return "{ NULL }";
-  }
+    if (NODE == NULL)
+    {
+        FORGE_LOG_WARNING("Printing a NULL Node");
+        return "{ NULL }";
+    }
 
-  // - - - TODO: @Sakshat : make this code pretty
-  // - - - @Asher: I tried ;-;
+    // Maintain a map to track visited nodes
+    static std::unordered_map<Node*, std::string> visitedNodes;
 
-  std::string retVal  = "{ ";
-  retVal              += getNodeTypeString(NODE->type);
-  retVal              += " \t| Context : ";
+    // Check if the node has already been visited
+    if (visitedNodes.find(NODE) != visitedNodes.end())
+    {
+        // If visited, return a reference to its ID
+        return "{ VISITED NODE: " + visitedNodes[NODE] + " }";
+    }
 
-  switch (NODE->type)
-  {
-    case NODE_TYPE_NUMBER:
-      retVal += "\tValue : " + std::to_string(NODE->context.numberContext.value);
-      break;
+    // Assign a unique ID to the node for future reference
+    std::string nodeID = "NODE_" + getNodeID(NODE);
+    visitedNodes[NODE] = nodeID;
 
-    case NODE_TYPE_VARIABLE:
-      retVal += "\tName : " + std::string(NODE->context.variableContext.name);
-      break;
+    std::string retVal = "{ " + nodeID + " | ";
+    retVal += getNodeTypeString(NODE->type);
+    retVal += " \t| Context : ";
 
-    case NODE_TYPE_BINARY_OPERATOR:
-      // - - - WARNING:  Hopefylly this isnt an infinite recursion
-      retVal += "\n\tLeft : "       + getNodeString(NODE->context.binaryContext.left);
-      retVal += "\n\tRight : "      + getNodeString(NODE->context.binaryContext.right);
-      retVal += "\n\tOperation : "  + getBinaryOperatorString(NODE->context.binaryContext.opcode);
-      break;
-      
-    case NODE_TYPE_ASSIGNMENT:
-      // - - - WARNING: Another potential infinite recursion 
-      retVal += "\tName : "           + std::string(NODE->context.assignmentContext.name);
-      retVal += "\nValue : "        + getNodeString(NODE->context.assignmentContext.value);
-      break;
+    switch (NODE->type)
+    {
+        case NODE_TYPE_NUMBER:
+            retVal += "\tValue : " + std::to_string(NODE->context.numberContext.value);
+            break;
 
-    case NODE_TYPE_RETURN:
-      retVal+= "\n\tValue : "         + getNodeString(NODE->context.returnContext.value);
-      break;
+        case NODE_TYPE_VARIABLE:
+            retVal += "\tName : " + std::string(NODE->context.variableContext.name);
+            break;
 
-    case NODE_TYPE_PREFIX:
-      retVal += "\n\tOperator : "     + std::string(NODE->context.prefixContext.operatorType);
-      // - - - WARNING: Pray to God that this is not a recursive call.
-      retVal += "\n\tRight : "        + getNodeString(NODE->context.prefixContext.right);
-      break;
+        case NODE_TYPE_BINARY_OPERATOR:
+            retVal += "\n\tLeft : " + getNodeString(NODE->context.binaryContext.left);
+            retVal += "\n\tRight : " + getNodeString(NODE->context.binaryContext.right);
+            retVal += "\n\tOperation : " + getBinaryOperatorString(NODE->context.binaryContext.opcode);
+            break;
 
-    default:
-      FORGE_ASSERT_MESSAGE(true, "Ek baar me samajh nahi aata kya? Tu yahan tak aaya kaise bhai. Agar likha hai maine ki it is to keep a count of all types of variables. It is not a type of Node itself.");
-  }
-  return retVal + "}";
+        case NODE_TYPE_ASSIGNMENT:
+            retVal += "\tName : " + std::string(NODE->context.assignmentContext.name);
+            retVal += "\nValue : " + getNodeString(NODE->context.assignmentContext.value);
+            break;
+
+        case NODE_TYPE_RETURN:
+            retVal += "\n\tValue : " + getNodeString(NODE->context.returnContext.value);
+            break;
+
+        case NODE_TYPE_PREFIX:
+            retVal += "\n\tOperator : " + std::string(NODE->context.prefixContext.operatorType);
+            retVal += "\n\tRight : " + getNodeString(NODE->context.prefixContext.right);
+            break;
+
+        default:
+            FORGE_ASSERT_MESSAGE(true, "Invalid Node type encountered.");
+    }
+
+    return retVal + " }";
 }
