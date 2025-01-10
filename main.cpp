@@ -55,6 +55,17 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
         FORGE_LOG_DEBUG(getNodeString(node).c_str());
       }
 
+      getchar();
+      getchar();
+
+      FORGE_LOG_FATAL("Printing all nodes");
+
+      for (int i = 0; i < program.allocator.allocated; i += sizeof(Node))
+      {
+        Node* node = (Node*)((char*)program.allocator.memory + i);
+        FORGE_LOG_DEBUG(getNodeString(node).c_str());
+      }
+
       destroyLinearAllocator(&program.allocator);
       return 0;
     }

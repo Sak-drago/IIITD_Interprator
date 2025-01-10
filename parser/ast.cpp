@@ -20,6 +20,7 @@ bool initNumberNode(Node* NODE, u64 VALUE)
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST Number Node");
   
   NODE->type                        = NODE_TYPE_NUMBER;
+  FORGE_LOG_TRACE("%d, value receieved for %p", VALUE, NODE);
   NODE->context.numberContext.value = VALUE;
 
   return true;
@@ -125,7 +126,7 @@ std::string getNodeTypeString(NodeType TYPE)
     case NODE_TYPE_ASSIGNMENT       : return "NODE_TYPE_ASSIGNMENT";
     case NODE_TYPE_VARIABLE         : return "NODE_TYPE_VARIABLE";
     case NODE_TYPE_NUMBER           : return "NODE_TYPE_NUMBER";
-    case NODE_TYPE_BINARY_OPERATOR  : return "NODE_TYPE_ASSIGNMENT";
+    case NODE_TYPE_BINARY_OPERATOR  : return "NODE_TYPE_BINARY_OPERATOR";
     case NODE_TYPE_RETURN           : return "NODE_TYPE_RETURN";
     case NODE_TYPE_PREFIX           : return "NODE_TYPE_PREFIX";
 
@@ -161,11 +162,6 @@ std::string getNodeString(Node* NODE)
     static std::unordered_map<Node*, std::string> visitedNodes;
 
     // Check if the node has already been visited
-    if (visitedNodes.find(NODE) != visitedNodes.end())
-    {
-        // If visited, return a reference to its ID
-        return "{ VISITED NODE: " + visitedNodes[NODE] + " }";
-    }
 
     // Assign a unique ID to the node for future reference
     std::string nodeID = "NODE_" + getNodeID(NODE);
@@ -186,8 +182,8 @@ std::string getNodeString(Node* NODE)
             break;
 
         case NODE_TYPE_BINARY_OPERATOR:
-            retVal += "\n\tLeft : " + getNodeString(NODE->context.binaryContext.left);
-            retVal += "\n\tRight : " + getNodeString(NODE->context.binaryContext.right);
+            retVal += "\n\tLeft : " + getNodeID(NODE->context.binaryContext.left);
+            retVal += "\n\tRight : " + getNodeID(NODE->context.binaryContext.right);
             retVal += "\n\tOperation : " + getBinaryOperatorString(NODE->context.binaryContext.opcode);
             break;
 

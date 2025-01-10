@@ -77,7 +77,8 @@ int peekPrecedence()
 }
 
 
-// - - - Binary Operator setter
+// - - - Binary Operator setters - - -
+
 // - - - TODO: Asher: Make it pretty
 BinaryOperator getBinaryOperator(Token token)
 {
@@ -95,6 +96,8 @@ BinaryOperator getBinaryOperator(Token token)
   FORGE_LOG_ERROR("How did you even get here Asher? Part 2, %s, %i", token.literal.c_str(), tokenIndex);
   exit(1);
 }
+
+
 bool match(TokenType EXPECTED_TYPE)
 {
   FORGE_ASSERT_MESSAGE(input != NULL, "Cannot begin matching before recieveing input");
@@ -111,9 +114,9 @@ bool match(TokenType EXPECTED_TYPE)
   return false;
 }
 
-void registerPrefix(TokenType type, Node* (*parseFunction)(void*))
+void registerPrefix(TokenType TYPE, Node* (*PARSE_FUNCTIONS)(void*))
 {
-  prefixParseFunctions[type] = parseFunction;
+  prefixParseFunctions[TYPE] = PARSE_FUNCTIONS;
 }
 
 void registerInfix(TokenType type, Node* (*parseFunction)(void*))
@@ -121,8 +124,10 @@ void registerInfix(TokenType type, Node* (*parseFunction)(void*))
   infixParseFunctions[type] = parseFunction;
 }
 
+
 // - - - Parsing Methods - - -
 
+// - - - Statement
 Node* parseStatement()
 {
   FORGE_ASSERT_MESSAGE(input != NULL, "Cannot begin parsing before recieveing input");
@@ -145,7 +150,6 @@ Node* parseStatement()
 }
 
 // - - - NOTE: Approach followed for parsing an expression is the "PRATT PARSER" approach.
-
 Node* parsePrefixExpression(void* arg) 
 {
   Token token = input->at(tokenIndex);
@@ -159,6 +163,8 @@ Node* parsePrefixExpression(void* arg)
 
   // - - - TODO: @Asher: Only supports "!" operator for now. Add support for "-" operator.
   Node* right = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  static int rightAllocCount = 0;
+  FORGE_LOG_TRACE("Allocating a right node %d", rightAllocCount++);
   right = parseExpression(Precedence::NOT_PRECEDENCE);
   initPrefixNode((Node*) arg, operatorType.c_str(), right);
   return (Node*)arg;
@@ -166,7 +172,9 @@ Node* parsePrefixExpression(void* arg)
 
 Node* parseInfixExpression(void* arg)
 {
-  Node* left = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  Node* left  = (Node*)arg;
+  static int leftAllocCount = 0;
+  FORGE_LOG_TRACE("Allocating a left node %d", leftAllocCount++);
   Token token = input->at(tokenIndex);
   if(arg == NULL)
   {
@@ -175,13 +183,15 @@ Node* parseInfixExpression(void* arg)
   }
 
   BinaryOperator opcode = getBinaryOperator(token);
-  int precedence = curPrecedence();
+  int precedence        = curPrecedence();
   tokenIndex++;
 
   Node* right = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  if (precedence == Precedence::NOT_PRECEDENCE) right = parsePrefixExpression(right);
+  //if (precedence == Precedence::NOT_PRECEDENCE) right = parsePrefixExpression(right);
   right = parseExpression(precedence);
   initBinaryOpNode(left, (Node*)arg , right, opcode);
+  static int binaryAllocCount = 0;
+  FORGE_LOG_TRACE("allocating a binary operator node %d", binaryAllocCount++);
   return left;
 }
 
@@ -208,13 +218,14 @@ Node* parseInteger(void* arg)
     exit(1);
   }
   initNumberNode((Node*) arg, std::stoi(token.literal));
+  FORGE_LOG_TRACE("size of node : %d", sizeof(Node));
   return (Node*)arg;
 }
 
 Node* parseExpressionStatement()
 {
-  Node* expression = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  expression = parseExpression(Precedence::LOWEST); 
+  Node* expression = nullptr;
+  expression = parseExpression(Precedence::LOWEST);
   return expression;
 }
 
@@ -223,6 +234,9 @@ Node* parseExpression(int precedence)
   Token token = input->at(tokenIndex);
   auto it = prefixParseFunctions.find(token.type);
   Node* left = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  static int expressionAllocCount = 0;
+  FORGE_LOG_TRACE("Allocating an expression node %d", expressionAllocCount++);
+  program->statements.push_back(left);
   if(it == prefixParseFunctions.end())
   {
     FORGE_LOG_ERROR("Syntax error : expected a prefix parse function for token type %s", getTokenTypeString(input->at(tokenIndex).type).c_str());
@@ -259,6 +273,9 @@ Node* parseReturnStatement()
 
   Node* returnNode = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
   Node* value = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  static int returnAllocCount = 0;
+  FORGE_LOG_TRACE("Allocating two return node %d", returnAllocCount += 2);
+
   initNumberNode(value, std::stoi(input->at(tokenIndex).literal));
   initReturnNode(returnNode, value);
   tokenIndex++;
@@ -295,10 +312,15 @@ Node* parseAssignmentExpression()
 
   // - - - TODO: @Asher: Right now, I have just assumed that we have an integer as the token and not an expression.
   Node* rhs = (Node*) linearAllocatorAllocate(&program->allocator,sizeof(Node));
+  static int rhsAllocCount = 0;
+  FORGE_LOG_TRACE("Allocating a rhs node %d", rhsAllocCount++);
+
   initNumberNode(rhs, std::stoi(input->at(tokenIndex).literal));
   tokenIndex++;
 
   Node* assigmentNode = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  static int assignmentAllocCount = 0;
+  FORGE_LOG_TRACE("Allocating an assignment node %d", assignmentAllocCount++);
   initAssignmentNode(assigmentNode, variableName, rhs);
   return assigmentNode;
 }
@@ -326,7 +348,7 @@ bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
 
   while (tokenIndex < input->size())
   {
-    program->statements.push_back(parseStatement()); 
+    program->statements.push_back(parseStatement());
     tokenIndex++;
   }
 
