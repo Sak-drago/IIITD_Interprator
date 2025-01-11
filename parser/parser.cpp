@@ -172,7 +172,7 @@ Node* parsePrefixExpression(void* arg)
 
 Node* parseInfixExpression(void* arg)
 {
-  Node* left  = (Node*)arg;
+  Node* left = (Node*)linearAllocatorAllocate(&program->allocator, sizeof(Node));
   static int leftAllocCount = 0;
   FORGE_LOG_TRACE("Allocating a left node %d", leftAllocCount++);
   Token token = input->at(tokenIndex);
@@ -186,8 +186,7 @@ Node* parseInfixExpression(void* arg)
   int precedence        = curPrecedence();
   tokenIndex++;
 
-  Node* right = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  //if (precedence == Precedence::NOT_PRECEDENCE) right = parsePrefixExpression(right);
+  Node* right = nullptr;
   right = parseExpression(precedence);
   initBinaryOpNode(left, (Node*)arg , right, opcode);
   static int binaryAllocCount = 0;

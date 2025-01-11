@@ -182,8 +182,8 @@ std::string getNodeString(Node* NODE)
             break;
 
         case NODE_TYPE_BINARY_OPERATOR:
-            retVal += "\n\tLeft : " + getNodeID(NODE->context.binaryContext.left);
-            retVal += "\n\tRight : " + getNodeID(NODE->context.binaryContext.right);
+            retVal += "\n\tLeft : " + getNodeString(NODE->context.binaryContext.left);
+            retVal += "\n\tRight : " + getNodeString(NODE->context.binaryContext.right);
             retVal += "\n\tOperation : " + getBinaryOperatorString(NODE->context.binaryContext.opcode);
             break;
 
