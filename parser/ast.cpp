@@ -58,6 +58,7 @@ bool initBinaryOpNode(Node* NODE, Node* LEFT_NODE, Node* RIGHT_NODE, BinaryOpera
     return false;
   }
   
+  FORGE_LOG_TRACE("Initializing a binary operator node with left %p and right %p", LEFT_NODE, RIGHT_NODE);
   NODE->context.binaryContext.left      = LEFT_NODE;
   NODE->context.binaryContext.right     = RIGHT_NODE;
   NODE->context.binaryContext.opcode    = OPCODE;
@@ -161,6 +162,11 @@ std::string getBinaryOperatorString(BinaryOperator TYPE)
     case BINARY_OPERATOR_DIVISION       : return "BINARY_OPERATOR_DIVISION(/)";
     case BINARY_OPERATOR_REMAINDER      : return "BINARY_OPERATOR_REMAINDER(%)";
     case BINARY_OPERATOR_POWER          : return "BINARY_OPERATOR_POWER(^)";
+    case COMPARISON_OPERATOR_EQUAL      : return "COMPARISON_OPERATOR_EQUAL(==)";
+    case COMPARISON_OPERATOR_GREATER    : return "COMPARISON_OPERATOR_GREATER(>)";
+    case COMPARISON_OPERATOR_LESSER     : return "COMPARISON_OPERATOR_LESSER(<)";
+    case COMPARISON_OPERATOR_GREATER_EQUAL : return "COMPARISON_OPERATOR_GREATER_EQUAL(=>)";
+    case COMPARISON_OPERATOR_LESSER_EQUAL : return "COMPARISON_OPERATOR_LESSER_EQUAL(<=)";
   }
 }
 

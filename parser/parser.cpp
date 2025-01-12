@@ -20,9 +20,7 @@ typedef enum Precendence{
   EQUALS_PRECEDENCE,
   NOT_EQUALS_PRECEDENCE,
   LESSER_PRECDEENCE,
-  GREATER_PRECEDENCE,
   LESSER_EQUALS_PRECEDENCE,
-  GREATER_EQUALS_PRECEDENCE,
   BINARY_OPERATOR_PRECEDENCE,
   SUM,
   PRODUCT,
@@ -36,9 +34,9 @@ std::unordered_map<TokenType, Precedence> precedencesMapping =
   {EQUALS, EQUALS_PRECEDENCE},
   {NOT_EQUALS, NOT_EQUALS_PRECEDENCE},
   {LESSER, LESSER_PRECDEENCE},
-  {GREATER, GREATER_PRECEDENCE},
+  {GREATER, LESSER_PRECDEENCE},
   {LESSER_EQUAL, LESSER_EQUALS_PRECEDENCE},
-  {GREATER_EQUAL, GREATER_EQUALS_PRECEDENCE},
+  {GREATER_EQUAL, LESSER_EQUALS_PRECEDENCE},
   {BINARY_OPERATOR, BINARY_OPERATOR_PRECEDENCE},
   {ADD, SUM},
   {SUB, SUM},
@@ -116,9 +114,19 @@ BinaryOperator getBinaryOperator(Token token)
     FORGE_LOG_ERROR("How did you even get here Asher?");
     exit(1);
   }
+  else
+  {
+    if(token.literal == "<") return COMPARISON_OPERATOR_GREATER;
+    if(token.literal == ">") return COMPARISON_OPERATOR_LESSER;
+    if(token.literal == "==") return COMPARISON_OPERATOR_EQUAL;
+    if(token.literal == "<=") return COMPARISON_OPERATOR_GREATER_EQUAL;
+    if(token.literal == "=>") return COMPARISON_OPERATOR_LESSER_EQUAL;
+    FORGE_LOG_ERROR("How did you even get here Asher but for Comparison?");
+  }
   FORGE_LOG_ERROR("How did you even get here Asher? Part 2, %s, %i", token.literal.c_str(), tokenIndex);
   exit(1);
 }
+
 
 
 bool match(TokenType EXPECTED_TYPE)
