@@ -131,6 +131,35 @@ bool initPrefixNode(Node* NODE, const char* OPERATOR, Node* RIGHT)
 
   return true;
 }
+
+// - - - initialize an if node
+bool initIfNode(Node* NODE, Node* CONDITION, Block* CONSEQUENCE, Block* ALTERNATIVE)
+{
+  FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST If Node");
+
+  if (CONDITION == NULL)
+  {
+    FORGE_LOG_WARNING("The Node passed as CONDITION for AST If Node intiailization is null");
+  }
+
+  if (CONSEQUENCE == NULL)
+  {
+    FORGE_LOG_WARNING("The Node passed as CONSEQUENCE for AST If Node intiailization is null");
+  }
+
+  if (ALTERNATIVE == NULL)
+  {
+    FORGE_LOG_WARNING("The Node passed as ALTERNATIVE for AST If Node intiailization is null");
+  }
+
+  NODE->type                          = NODE_TYPE_IF;
+  NODE->context.ifContext.condition   = CONDITION;
+  NODE->context.ifContext.consequence = CONSEQUENCE;
+  NODE->context.ifContext.alternative = ALTERNATIVE;
+
+  return true;
+}
+
 // - - - Print Nodes - - - 
 
 std::string getNodeTypeString(NodeType TYPE)
@@ -143,6 +172,7 @@ std::string getNodeTypeString(NodeType TYPE)
     case NODE_TYPE_BINARY_OPERATOR  : return "NODE_TYPE_BINARY_OPERATOR";
     case NODE_TYPE_RETURN           : return "NODE_TYPE_RETURN";
     case NODE_TYPE_BOOLEAN          : return "NODE_TYPE_BOOLEAN";
+    case NODE_TYPE_IF               : return "NODE_TYPE_IF";
     case NODE_TYPE_PREFIX           : return "NODE_TYPE_PREFIX";
 
     default:
@@ -162,12 +192,24 @@ std::string getBinaryOperatorString(BinaryOperator TYPE)
     case BINARY_OPERATOR_DIVISION       : return "BINARY_OPERATOR_DIVISION(/)";
     case BINARY_OPERATOR_REMAINDER      : return "BINARY_OPERATOR_REMAINDER(%)";
     case BINARY_OPERATOR_POWER          : return "BINARY_OPERATOR_POWER(^)";
+
+    // - - - Comparison Operator
     case COMPARISON_OPERATOR_EQUAL      : return "COMPARISON_OPERATOR_EQUAL(==)";
     case COMPARISON_OPERATOR_GREATER    : return "COMPARISON_OPERATOR_GREATER(>)";
     case COMPARISON_OPERATOR_LESSER     : return "COMPARISON_OPERATOR_LESSER(<)";
     case COMPARISON_OPERATOR_GREATER_EQUAL : return "COMPARISON_OPERATOR_GREATER_EQUAL(=>)";
     case COMPARISON_OPERATOR_LESSER_EQUAL : return "COMPARISON_OPERATOR_LESSER_EQUAL(<=)";
   }
+}
+
+std::string getBlockString(std::vector<Node*> statements)
+{
+    std::string retVal = "{ ";
+    for (Node* node : statements)
+    {
+        retVal += getNodeString(node);
+    }
+    return retVal + " }";
 }
 
 std::string getNodeString(Node* NODE)
@@ -225,6 +267,11 @@ std::string getNodeString(Node* NODE)
             retVal += "\tValue : " + std::to_string(NODE->context.booleanContext.value);
             break;
 
+        case NODE_TYPE_IF:
+            retVal += "\n\tCondition : " + getNodeString(NODE->context.ifContext.condition);
+            retVal += "\n\tConsequence : " + getBlockString(NODE->context.ifContext.consequence->statements);
+            if(NODE->context.ifContext.alternative && NODE->context.ifContext.alternative->statements.size()>0)retVal += "\n\tAlternative : " + getBlockString(NODE->context.ifContext.alternative->statements);
+            break;
         default:
             FORGE_ASSERT_MESSAGE(true, "Invalid Node type encountered.");
     }

@@ -1,3 +1,14 @@
 {
-    "C_Cpp.errorSquiggles": "enabled"
+    "C_Cpp.errorSquiggles": "enabled",
+    "files.associations": {
+        "compare": "cpp",
+        "concepts": "cpp",
+        "cwchar": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "new": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "type_traits": "cpp"
+    }
 }

@@ -3,6 +3,7 @@
 #include "../library/include/asserts.h"
 #include "../library/include/logger.h"
 #include "../include/tokenizer.h"
+#include "../include/tokens.h"
 #include <vector>
 #include <iostream>
 
@@ -181,6 +182,22 @@ Node* parseStatement()
   }
 }
 
+// - - - Block Statement
+
+Block* parseBlockStatement()
+{
+  Block* block = (Block*) linearAllocatorAllocate(&program->allocator, sizeof(Block));
+  static int blockAllocCount = 0;
+  FORGE_LOG_TRACE("Allocating a block %d", blockAllocCount++);
+  block->statements = std::vector<Node*>();
+
+  while (tokenIndex < input->size() && input->at(tokenIndex).type != CLOSE_BRACE)
+  {
+    block->statements.push_back(parseStatement());
+  }
+  return block;
+}
+
 // - - - NOTE: Approach followed for parsing an expression is the "PRATT PARSER" approach.
 Node* parsePrefixExpression(void* arg) 
 {
@@ -223,6 +240,7 @@ Node* parseInfixExpression(void* arg)
   initBinaryOpNode(left, (Node*)arg , right, opcode);
   static int binaryAllocCount = 0;
   FORGE_LOG_TRACE("allocating a binary operator node %d", binaryAllocCount++);
+  tokenIndex++;
   return left;
 }
 
@@ -277,6 +295,68 @@ Node* parseBoolean(void* arg)
     FORGE_LOG_ERROR("Syntax error : expected a boolean value");
     exit(1);
   }
+}
+
+Node* parseGroupedExpress(void* arg)
+{
+  tokenIndex++;
+  Node* expression = parseExpression(Precedence::LOWEST);
+  if (!match(CLOSE_PARANTHESIS))
+  {
+    FORGE_LOG_ERROR("Syntax error : expected a closing paranthesis");
+    exit(1);
+  }
+  return expression;
+}
+
+// - - - Only supports "IF" with/without "ELSE" statement for now
+// - - - TODO: @Asher: Add ELIF support
+Node* parseIfExpression(void* arg)
+{
+  Token token = input->at(tokenIndex);
+  if (!match(IF))
+  {
+    FORGE_LOG_ERROR("Syntax error in If statement");
+    exit(1);
+  }
+
+  if(!match(OPEN_PARANTHESIS))
+  {
+    FORGE_LOG_ERROR("Syntax error in If statement");
+    exit(1);
+  }
+
+  static int ifAllocCount = 0;
+  FORGE_LOG_TRACE("Allocating an if node %d", ifAllocCount++);
+
+  FORGE_LOG_TRACE("Position: %s", input->at(tokenIndex).literal.c_str());
+  Node* condition = nullptr;
+  condition = parseExpression(Precedence::LOWEST);
+  tokenIndex++;
+  FORGE_LOG_TRACE("Position: %s", input->at(tokenIndex).literal.c_str());
+  
+  // - - - Skipping over the close paranthesis
+  if(match(CLOSE_PARANTHESIS)){}
+
+  FORGE_LOG_TRACE("Position: %s", input->at(tokenIndex).literal.c_str());
+
+  if(!match(OPEN_BRACE))
+  {
+    FORGE_LOG_ERROR("Syntax error in If statement");
+    exit(1);
+  }
+
+  Block* consequence = nullptr;
+  consequence = parseBlockStatement();
+  tokenIndex++;
+  Block* alternative = nullptr;
+  if (tokenIndex < input->size() && match(ELSE))
+  {
+    alternative = parseBlockStatement();
+  }
+
+  initIfNode((Node*)arg, condition, consequence, alternative);
+  return (Node*)arg;
 }
 
 Node* parseExpression(int precedence)
@@ -396,6 +476,8 @@ bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
   registerInfix(ADD, parseInfixExpression);
   registerInfix(SUB, parseInfixExpression);
   registerInfix(BINARY_OPERATOR, parseInfixExpression);
+  registerPrefix(OPEN_PARANTHESIS, parseGroupedExpress);
+  registerPrefix(IF, parseIfExpression);
 
   while (tokenIndex < input->size())
   {

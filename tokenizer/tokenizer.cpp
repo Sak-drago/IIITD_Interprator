@@ -32,6 +32,8 @@ const std::string tokenNames[TOKEN_TYPES_COUNT] =
   "ASSIGN",
   "OPEN_PARANTHESIS",
   "CLOSE_PARANTHESIS",
+  "OPEN_BRACE",
+  "CLOSE_BRACE",
   "BINARY_OPERATOR",
   "GREATER",
   "LESSER",
@@ -136,6 +138,26 @@ std::vector<Token> tokenize(const char* SRC_CODE)
               current, 
               current + 1, 
               CLOSE_PARANTHESIS));
+        current++;
+        break;
+
+      // - - - OPEN_BRACE
+      case '{':
+        tokens.push_back(makeToken(
+              SRC_CODE,     
+              current, 
+              current + 1, 
+              OPEN_BRACE));
+        current++;
+        break;
+      
+      // - - - CLOSE_BRACE
+      case '}':
+        tokens.push_back(makeToken(
+              SRC_CODE,     
+              current, 
+              current + 1, 
+              CLOSE_BRACE));
         current++;
         break;
 

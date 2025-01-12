@@ -1,7 +1,7 @@
 #pragma once
 #include "../defines.h"
 #include "../include/tokens.h"
-
+#include <vector>
 
 // - - - Binary AST Node specific
 typedef enum BinaryOperator
@@ -30,10 +30,14 @@ typedef enum NodeType
   NODE_TYPE_BINARY_OPERATOR,            // - - - +
   NODE_TYPE_RETURN,                     // - - - return
   NODE_TYPE_ASSIGNMENT,                 // - - - =
-  NODE_TYPE_PREFIX,                    // - - - ++x/!x
-  NODE_TYPE_BOOLEAN,
+  NODE_TYPE_PREFIX,                     // - - - ++x/!x
+  NODE_TYPE_BOOLEAN,                    // - - - true/false
+  NODE_TYPE_IF,                         // - - - if  
   NODE_TYPE_COUNT                       // - - - keep a count of all type of nodes
 } NodeType;
+
+
+
 
 // - - - context saves the data of an AST Node
 typedef union NodeContext
@@ -77,6 +81,13 @@ typedef union NodeContext
     bool value;
   } booleanContext;
   
+  struct
+  {
+    struct Node* condition;
+    struct Block* consequence;
+    struct Block* alternative;
+
+  } ifContext;
   
 } NodeContext;
 
@@ -88,6 +99,11 @@ typedef struct Node
   NodeContext   context;
 } Node;
 
+// - - - context saves block of Nodes
+typedef struct Block
+{
+  std::vector<Node*> statements;
+} Block;
 
 // - - - AST Node related Functions - - - 
 
@@ -105,6 +121,9 @@ FORGE_API bool        initAssignmentNode   (Node* NODE, std::string& NAME, Node*
 FORGE_API bool       initReturnNode       (Node* NODE, Node* VALUE);
 
 FORGE_API bool      initPrefixNode       (Node* NODE, const char* OPERATOR, Node* RIGHT);
+
+FORGE_API bool      initIfNode           (Node* NODE, Node* CONDITION, Block* CONSEQUENCE, Block* ALTERNATIVE);
+
 // - - - print a node
 FORGE_API std::string getNodeTypeString (NodeType TYPE);
 
