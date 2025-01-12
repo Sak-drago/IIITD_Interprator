@@ -26,6 +26,19 @@ bool initNumberNode(Node* NODE, u64 VALUE)
   return true;
 }
 
+
+// - - -  initialize a boolean node (true/false)
+
+bool initBoolNode(Node* NODE, bool VALUE)
+{
+  FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST Boolean Node");
+
+  NODE->type                        = NODE_TYPE_BOOLEAN;
+  NODE->context.booleanContext.value = VALUE;
+
+  return true;
+}
+
 // - - - initialize a binary opeartor node 
 bool initBinaryOpNode(Node* NODE, Node* LEFT_NODE, Node* RIGHT_NODE, BinaryOperator OPCODE)
 {

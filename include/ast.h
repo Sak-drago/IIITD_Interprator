@@ -26,6 +26,7 @@ typedef enum NodeType
   NODE_TYPE_RETURN,                     // - - - return
   NODE_TYPE_ASSIGNMENT,                 // - - - =
   NODE_TYPE_PREFIX,                    // - - - ++x/!x
+  NODE_TYPE_BOOLEAN,
   NODE_TYPE_COUNT                       // - - - keep a count of all type of nodes
 } NodeType;
 
@@ -65,6 +66,12 @@ typedef union NodeContext
     const char* operatorType;
     struct Node* right;
   } prefixContext;
+
+  struct
+  {
+    bool value;
+  } booleanContext;
+  
   
 } NodeContext;
 
@@ -81,6 +88,8 @@ typedef struct Node
 
 // - - - initialize nodes of each type
 FORGE_API bool        initNumberNode       (Node* NODE, u64 VALUE);
+
+FORGE_API bool        initBoolNode         (Node* NODE, bool VALUE);
 
 FORGE_API bool        initBinaryOpNode     (Node* NODE, Node* LEFT_NODE, Node* RIGHT_NODE, BinaryOperator OPCODE);
 

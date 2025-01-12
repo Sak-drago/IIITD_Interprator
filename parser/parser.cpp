@@ -24,6 +24,8 @@ typedef enum Precendence{
   LESSER_EQUALS_PRECEDENCE,
   GREATER_EQUALS_PRECEDENCE,
   BINARY_OPERATOR_PRECEDENCE,
+  SUM,
+  PRODUCT,
   NOT_PRECEDENCE,
   PRECEDENCE_COUNT, // - - - To keep count of items in order
 } Precedence;
@@ -38,6 +40,10 @@ std::unordered_map<TokenType, Precedence> precedencesMapping =
   {LESSER_EQUAL, LESSER_EQUALS_PRECEDENCE},
   {GREATER_EQUAL, GREATER_EQUALS_PRECEDENCE},
   {BINARY_OPERATOR, BINARY_OPERATOR_PRECEDENCE},
+  {ADD, SUM},
+  {SUB, SUM},
+  {MUL, PRODUCT},
+  {DIV, PRODUCT},
   {NOT, NOT_PRECEDENCE}
 };
 
@@ -53,6 +59,23 @@ int curPrecedence()
 
   if (precedencesMapping.find(token.type) != precedencesMapping.end())
   {
+    if(token.type == BINARY_OPERATOR)
+    {
+      switch (token.literal[0])
+      {
+      case '+':
+      case '-':
+        return SUM;
+        break;
+      case '*':
+      case '/':
+        return PRODUCT;
+        break;
+      default:
+        return precedencesMapping[token.type];
+        break;
+      }
+    }
     return precedencesMapping[token.type];
   }
 
@@ -133,6 +156,7 @@ Node* parseStatement()
   FORGE_ASSERT_MESSAGE(input != NULL, "Cannot begin parsing before recieveing input");
 
   Token token = input->at(tokenIndex); 
+  FORGE_LOG_TRACE("Parsing a statement at token index %d", tokenIndex);
 
   switch (token.type)
   {
@@ -204,7 +228,6 @@ Node* parseIdentifier(void* arg)
   }
   std::string variName = token.literal;
   initVariableNode((Node*) arg, variName);
-  tokenIndex++;
   return (Node*)arg;
 }
 
@@ -217,7 +240,6 @@ Node* parseInteger(void* arg)
     exit(1);
   }
   initNumberNode((Node*) arg, std::stoi(token.literal));
-  FORGE_LOG_TRACE("size of node : %d", sizeof(Node));
   return (Node*)arg;
 }
 
@@ -226,6 +248,26 @@ Node* parseExpressionStatement()
   Node* expression = nullptr;
   expression = parseExpression(Precedence::LOWEST);
   return expression;
+}
+
+Node* parseBoolean(void* arg)
+{
+  Token token = input->at(tokenIndex);
+  if(token.type == TRUE)
+  { 
+    initBoolNode((Node*)arg, true);
+    return (Node*)arg;
+  }
+  else if(token.type == FALSE)
+  {
+    initBoolNode((Node*)arg, false);
+    return (Node*)arg;
+  }
+  else
+  {
+    FORGE_LOG_ERROR("Syntax error : expected a boolean value");
+    exit(1);
+  }
 }
 
 Node* parseExpression(int precedence)
@@ -271,11 +313,11 @@ Node* parseReturnStatement()
   }
 
   Node* returnNode = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  Node* value = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
   static int returnAllocCount = 0;
   FORGE_LOG_TRACE("Allocating two return node %d", returnAllocCount += 2);
 
-  initNumberNode(value, std::stoi(input->at(tokenIndex).literal));
+  Node* value = nullptr;
+  value = parseExpression(Precedence::LOWEST);
   initReturnNode(returnNode, value);
   tokenIndex++;
   return returnNode;
@@ -305,16 +347,13 @@ Node* parseAssignmentExpression()
     exit(1);
   }
   
+  FORGE_LOG_FATAL("Parsing an assignment statement");
+  FORGE_LOG_TRACE("Position: %s", input->at(tokenIndex).literal.c_str());
 
   FORGE_LOG_WARNING("Token literal %s", token.literal.c_str());
 
-
-  // - - - TODO: @Asher: Right now, I have just assumed that we have an integer as the token and not an expression.
-  Node* rhs = (Node*) linearAllocatorAllocate(&program->allocator,sizeof(Node));
-  static int rhsAllocCount = 0;
-  FORGE_LOG_TRACE("Allocating a rhs node %d", rhsAllocCount++);
-
-  initNumberNode(rhs, std::stoi(input->at(tokenIndex).literal));
+  Node* rhs = nullptr;
+  rhs = parseExpression(Precedence::LOWEST);
   tokenIndex++;
 
   Node* assigmentNode = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
@@ -337,12 +376,16 @@ bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
   registerPrefix(NOT, parsePrefixExpression);
   registerPrefix(IDENTIFIER, parseIdentifier);
   registerPrefix(NUMBER, parseInteger);
+  registerPrefix(TRUE, parseBoolean);
+  registerPrefix(FALSE, parseBoolean);
   registerInfix(EQUALS, parseInfixExpression);
   registerInfix(NOT_EQUALS, parseInfixExpression);
   registerInfix(LESSER, parseInfixExpression);
   registerInfix(GREATER, parseInfixExpression);
   registerInfix(LESSER_EQUAL, parseInfixExpression);
   registerInfix(GREATER_EQUAL, parseInfixExpression);
+  registerInfix(ADD, parseInfixExpression);
+  registerInfix(SUB, parseInfixExpression);
   registerInfix(BINARY_OPERATOR, parseInfixExpression);
 
   while (tokenIndex < input->size())

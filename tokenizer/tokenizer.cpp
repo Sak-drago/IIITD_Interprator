@@ -37,6 +37,10 @@ const std::string tokenNames[TOKEN_TYPES_COUNT] =
   "LESSER",
   "GREATER_EQUAL",
   "LESSER_EQUAL",
+  "ADD",
+  "SUB",
+  "MUL",
+  "DIV",
   "PLAG",
   "DAC",
   "TRUE",
@@ -71,16 +75,16 @@ int readIdentifier(const char* TOKEN, int START)
 // - - - Look up table for Keywords - - -
 std::unordered_map<std::string, TokenType> keywords = 
 {
-  {"Plag", PLAG},
-  {"dac",  DAC},
-  {"real", TRUE},
-  {"cap", FALSE},
   {"if", IF},
   {"yafir", ELIF},
   {"ya", ELSE},
   {"for", FOR},
   {"while", WHILE},
-  {"return", RETURN},
+  {"return", RETURN},  
+  {"Plag", PLAG},
+  {"dac",  DAC},
+  {"real", TRUE},
+  {"cap", FALSE},
 };
 
 TokenType lookUpKeywords(std::string &iden)
@@ -248,7 +252,6 @@ std::vector<Token> tokenize(const char* SRC_CODE)
         current++;
         break;
 
-      // - - - handle multi character token later
       default : 
         if(std::isalpha(currentChar,alphaChar)){
           int updatePosition = readIdentifier(SRC_CODE, current);
