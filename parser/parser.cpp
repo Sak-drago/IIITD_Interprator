@@ -253,6 +253,7 @@ Node* parseExpressionStatement()
 Node* parseBoolean(void* arg)
 {
   Token token = input->at(tokenIndex);
+  FORGE_LOG_TRACE("Parsing a boolean value");
   if(token.type == TRUE)
   { 
     initBoolNode((Node*)arg, true);

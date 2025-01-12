@@ -141,6 +141,7 @@ std::string getNodeTypeString(NodeType TYPE)
     case NODE_TYPE_NUMBER           : return "NODE_TYPE_NUMBER";
     case NODE_TYPE_BINARY_OPERATOR  : return "NODE_TYPE_BINARY_OPERATOR";
     case NODE_TYPE_RETURN           : return "NODE_TYPE_RETURN";
+    case NODE_TYPE_BOOLEAN          : return "NODE_TYPE_BOOLEAN";
     case NODE_TYPE_PREFIX           : return "NODE_TYPE_PREFIX";
 
     default:
@@ -212,6 +213,10 @@ std::string getNodeString(Node* NODE)
         case NODE_TYPE_PREFIX:
             retVal += "\n\tOperator : " + std::string(NODE->context.prefixContext.operatorType);
             retVal += "\n\tRight : " + getNodeString(NODE->context.prefixContext.right);
+            break;
+
+        case NODE_TYPE_BOOLEAN:
+            retVal += "\tValue : " + std::to_string(NODE->context.booleanContext.value);
             break;
 
         default:
