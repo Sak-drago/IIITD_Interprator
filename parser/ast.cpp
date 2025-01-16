@@ -15,7 +15,7 @@ std::string getNodeID(Node* node) {
 
 // - - - Initialize all node types - - - 
 // - - - number nodes
-bool initNumberNode(Node* NODE, u64 VALUE)
+bool initNumberNode(Node* NODE, i64 VALUE)
 {
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST Number Node");
   

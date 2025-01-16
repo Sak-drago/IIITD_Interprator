@@ -193,6 +193,7 @@ Block* parseBlockStatement()
 
   while (tokenIndex < input->size() && input->at(tokenIndex).type != CLOSE_BRACE)
   {
+    FORGE_LOG_DEBUG("Parsing a block statement");
     block->statements.push_back(parseStatement());
   }
   return block;
@@ -237,6 +238,7 @@ Node* parseInfixExpression(void* arg)
 
   Node* right = nullptr;
   right = parseExpression(precedence);
+  if(match(CLOSE_PARANTHESIS)){}
   initBinaryOpNode(left, (Node*)arg , right, opcode);
   static int binaryAllocCount = 0;
   FORGE_LOG_TRACE("allocating a binary operator node %d", binaryAllocCount++);
@@ -366,7 +368,6 @@ Node* parseExpression(int precedence)
   Node* left = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
   static int expressionAllocCount = 0;
   FORGE_LOG_TRACE("Allocating an expression node %d", expressionAllocCount++);
-  program->statements.push_back(left);
   if(it == prefixParseFunctions.end())
   {
     FORGE_LOG_ERROR("Syntax error : expected a prefix parse function for token type %s", getTokenTypeString(input->at(tokenIndex).type).c_str());
@@ -376,13 +377,15 @@ Node* parseExpression(int precedence)
     Node*(*prefix)(void*) = it->second;
     left = prefix((void*)left);
   }
+
   while (precedence < peekPrecedence())
   {
     tokenIndex++;
+    FORGE_LOG_DEBUG("At token: %s", input->at(tokenIndex).literal.c_str());
     auto it = infixParseFunctions.find(input->at(tokenIndex).type);
     if(it == infixParseFunctions.end())
     {
-      FORGE_LOG_DEBUG("No Infix parser found for %d", input->at(tokenIndex).type);
+      FORGE_LOG_DEBUG("No Infix parser found for %s", input->at(tokenIndex).literal.c_str());
       return left;
     }
     Node*(*infix)(void*) = it->second;
@@ -435,7 +438,8 @@ Node* parseAssignmentExpression()
     FORGE_LOG_ERROR("Syntax error : expected '=' after variableName");
     exit(1);
   }
-  
+
+  if(match(OPEN_PARANTHESIS)){}
   FORGE_LOG_FATAL("Parsing an assignment statement");
   FORGE_LOG_TRACE("Position: %s", input->at(tokenIndex).literal.c_str());
 
@@ -502,6 +506,7 @@ Node* parseFunctionLiteral(void* arg)
     FORGE_LOG_ERROR("Syntax Error: expected an Open Bracket in Function")
     exit(1);
   }
+  
   fnLit = parseFunctionParams();
   
     if(!match(OPEN_BRACE))
@@ -511,6 +516,11 @@ Node* parseFunctionLiteral(void* arg)
   }
 
   Block* fnBody = parseBlockStatement();
+  for (int i = 0; i < program->allocator.allocated; i += sizeof(Node))
+      {
+        Node* node = (Node*)((char*)program->allocator.memory + i);
+        FORGE_LOG_DEBUG(getNodeString(node).c_str());
+      }
   initFunctionNode((Node*)arg, fnLit, fnBody);
   return (Node*)arg;
 }

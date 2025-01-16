@@ -120,7 +120,7 @@ typedef struct Block
 // - - - AST Node related Functions - - - 
 
 // - - - initialize nodes of each type
-FORGE_API bool        initNumberNode       (Node* NODE, u64 VALUE);
+FORGE_API bool        initNumberNode       (Node* NODE, i64 VALUE);
 
 FORGE_API bool        initBoolNode         (Node* NODE, bool VALUE);
 
