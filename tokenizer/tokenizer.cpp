@@ -53,6 +53,8 @@ const std::string tokenNames[TOKEN_TYPES_COUNT] =
   "FOR",
   "WHILE",
   "RETURN",
+  "FUNCTION",
+  "COMMA",
 };
 
 const std::string getTokenTypeString(TokenType TYPE)
@@ -87,6 +89,7 @@ std::unordered_map<std::string, TokenType> keywords =
   {"dac",  DAC},
   {"real", TRUE},
   {"cap", FALSE},
+  {"Fn", FUNCTION},
 };
 
 TokenType lookUpKeywords(std::string &iden)
@@ -160,7 +163,17 @@ std::vector<Token> tokenize(const char* SRC_CODE)
               CLOSE_BRACE));
         current++;
         break;
-
+      
+      // - - - COMMA
+      case ',':
+        tokens.push_back(makeToken(
+              SRC_CODE,     
+              current, 
+              current + 1, 
+              COMMA));
+        current++;
+        break;
+        
       // - - - ASSIGN OR EQUALS
       case '=':
         switch(src[current + 1])

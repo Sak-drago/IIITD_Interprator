@@ -35,6 +35,8 @@ typedef enum TokenType
   FOR,
   WHILE,
   RETURN,
+  FUNCTION,
+  COMMA,
   TOKEN_TYPES_COUNT,
 } TokenType;
 

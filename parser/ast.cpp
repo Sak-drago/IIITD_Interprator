@@ -160,6 +160,23 @@ bool initIfNode(Node* NODE, Node* CONDITION, Block* CONSEQUENCE, Block* ALTERNAT
   return true;
 }
 
+// - - - initialize an Fn node
+bool initFunctionNode(Node* NODE, std::vector<FunctionParameter> PARAMETERS, Block* BODY)
+{
+  FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST Function Node");
+
+  if (BODY == NULL)
+  {
+    FORGE_LOG_WARNING("The Node passed as BODY for AST Function Node intiailization is null");
+  }
+
+  NODE->type                          = NODE_TYPE_FUNCTION;
+  NODE->context.functionContext.parameters = PARAMETERS;
+  NODE->context.functionContext.body       = BODY;
+
+  return true;
+}
+
 // - - - Print Nodes - - - 
 
 std::string getNodeTypeString(NodeType TYPE)
@@ -174,6 +191,7 @@ std::string getNodeTypeString(NodeType TYPE)
     case NODE_TYPE_BOOLEAN          : return "NODE_TYPE_BOOLEAN";
     case NODE_TYPE_IF               : return "NODE_TYPE_IF";
     case NODE_TYPE_PREFIX           : return "NODE_TYPE_PREFIX";
+    case NODE_TYPE_FUNCTION         : return "NODE_TYPE_FUNCTION";
 
     default:
       FORGE_ASSERT_MESSAGE(true, "Tu yahan tak aaya kaise bhai. Agar likha hai maine ki it is to keep a count of all types of variables. It is not a type of Node itself.");
@@ -272,6 +290,17 @@ std::string getNodeString(Node* NODE)
             retVal += "\n\tConsequence : " + getBlockString(NODE->context.ifContext.consequence->statements);
             if(NODE->context.ifContext.alternative && NODE->context.ifContext.alternative->statements.size()>0)retVal += "\n\tAlternative : " + getBlockString(NODE->context.ifContext.alternative->statements);
             break;
+
+        case NODE_TYPE_FUNCTION:
+            retVal += "\n\tParameters : ";
+            for (u64 i = 0; i < NODE->context.functionContext.parameters.size(); i++)
+            {
+                FORGE_LOG_DEBUG("Current parameter : %s", NODE->context.functionContext.parameters[i].name);
+                retVal += "\n\t\t" + std::string(NODE->context.functionContext.parameters[i].name);
+            }
+            retVal += "\n\tBody : " + getBlockString(NODE->context.functionContext.body->statements);
+            break;
+
         default:
             FORGE_ASSERT_MESSAGE(true, "Invalid Node type encountered.");
     }

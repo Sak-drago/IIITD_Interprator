@@ -33,11 +33,15 @@ typedef enum NodeType
   NODE_TYPE_PREFIX,                     // - - - ++x/!x
   NODE_TYPE_BOOLEAN,                    // - - - true/false
   NODE_TYPE_IF,                         // - - - if  
+  NODE_TYPE_FUNCTION,                   // - - - function
   NODE_TYPE_COUNT                       // - - - keep a count of all type of nodes
 } NodeType;
 
-
-
+// - - - Extra data for function nodes (replacement for variables)
+struct FunctionParameter
+  {
+    const char* name;
+  };
 
 // - - - context saves the data of an AST Node
 typedef union NodeContext
@@ -57,7 +61,7 @@ typedef union NodeContext
   struct 
   {
     const char*       name;
-  } variableContext;
+  } variableContext; // - - - This made me angry
 
   struct 
   {
@@ -88,6 +92,14 @@ typedef union NodeContext
     struct Block* alternative;
 
   } ifContext;
+  
+  
+
+  struct
+  {
+    std::vector<FunctionParameter> parameters;
+    struct Block* body;
+  } functionContext;
   
 } NodeContext;
 
@@ -124,6 +136,7 @@ FORGE_API bool      initPrefixNode       (Node* NODE, const char* OPERATOR, Node
 
 FORGE_API bool      initIfNode           (Node* NODE, Node* CONDITION, Block* CONSEQUENCE, Block* ALTERNATIVE);
 
+FORGE_API bool     initFunctionNode     (Node* NODE, std::vector<FunctionParameter> PARAMETERS, Block* BODY);
 // - - - print a node
 FORGE_API std::string getNodeTypeString (NodeType TYPE);
 

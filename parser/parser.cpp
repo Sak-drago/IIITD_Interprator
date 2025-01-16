@@ -129,7 +129,7 @@ BinaryOperator getBinaryOperator(Token token)
 }
 
 
-
+// - - - Match the token type and move forward
 bool match(TokenType EXPECTED_TYPE)
 {
   FORGE_ASSERT_MESSAGE(input != NULL, "Cannot begin matching before recieveing input");
@@ -452,6 +452,70 @@ Node* parseAssignmentExpression()
   return assigmentNode;
 }
 
+std::vector<FunctionParameter> parseFunctionParams()
+{
+  std::vector<FunctionParameter> identifiers;
+  if (match(CLOSE_PARANTHESIS))
+  {
+    return identifiers;
+  }
+
+  while (true)
+  {
+    if(!match(IDENTIFIER))
+    {
+      FORGE_LOG_ERROR("Syntax error : expected an identifier");
+      exit(1);
+    }
+    Node* currIden = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+    std::string currIdenName = input->at(tokenIndex-1).literal;
+    initVariableNode(currIden, currIdenName);
+    
+    // - - - using placeholder variableContext for now
+    FunctionParameter currIdenContext;
+    currIdenContext.name = currIden->context.variableContext.name;
+    identifiers.push_back(currIdenContext);
+    if(match(COMMA)){}
+    else
+    {
+      break;
+    }
+  }
+
+  if(!match(CLOSE_PARANTHESIS))
+  {
+    FORGE_LOG_ERROR("Syntax error : expected a closing paranthesis");
+    exit(1);
+  }
+
+  return identifiers;
+}
+
+// - - - FUNCTION parser
+
+Node* parseFunctionLiteral(void* arg)
+{
+  tokenIndex++;
+  std::vector<FunctionParameter> fnLit;
+  if(!match(OPEN_PARANTHESIS))
+  {
+    FORGE_LOG_ERROR("Syntax Error: expected an Open Bracket in Function")
+    exit(1);
+  }
+  fnLit = parseFunctionParams();
+  
+    if(!match(OPEN_BRACE))
+  {
+    FORGE_LOG_ERROR("Syntax Error: expected an Open Brace for expression in Function");  
+    exit(1);
+  }
+
+  Block* fnBody = parseBlockStatement();
+  initFunctionNode((Node*)arg, fnLit, fnBody);
+  return (Node*)arg;
+}
+
+// - - - AST Creation Function
 bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
 {
   FORGE_ASSERT_MESSAGE(TOKENS != NULL, "TOKENS cannot be NULL to construct a program");
@@ -478,6 +542,7 @@ bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
   registerInfix(BINARY_OPERATOR, parseInfixExpression);
   registerPrefix(OPEN_PARANTHESIS, parseGroupedExpress);
   registerPrefix(IF, parseIfExpression);
+  registerPrefix(FUNCTION, parseFunctionLiteral);
 
   while (tokenIndex < input->size())
   {
