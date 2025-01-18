@@ -5,7 +5,6 @@
 #include "../include/tokenizer.h"
 #include "../include/tokens.h"
 #include <vector>
-#include <iostream>
 
 static Program* program;
 static std::vector<Token>* input = NULL;
@@ -165,8 +164,6 @@ Node* parseStatement()
   FORGE_ASSERT_MESSAGE(input != NULL, "Cannot begin parsing before recieveing input");
 
   Token token = input->at(tokenIndex); 
-  FORGE_LOG_TRACE("Parsing a statement at token index %d", tokenIndex);
-
   switch (token.type)
   {
     case PLAG: 
@@ -187,8 +184,6 @@ Node* parseStatement()
 Block* parseBlockStatement()
 {
   Block* block = (Block*) linearAllocatorAllocate(&program->allocator, sizeof(Block));
-  static int blockAllocCount = 0;
-  FORGE_LOG_TRACE("Allocating a block %d", blockAllocCount++);
   block->statements = std::vector<Node*>();
 
   while (tokenIndex < input->size() && input->at(tokenIndex).type != CLOSE_BRACE)
@@ -213,8 +208,6 @@ Node* parsePrefixExpression(void* arg)
 
   // - - - TODO: @Asher: Only supports "!" operator for now. Add support for "-" operator.
   Node* right = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  static int rightAllocCount = 0;
-  FORGE_LOG_TRACE("Allocating a right node %d", rightAllocCount++);
   right = parseExpression(Precedence::NOT_PRECEDENCE);
   initPrefixNode((Node*) arg, operatorType.c_str(), right);
   return (Node*)arg;
@@ -223,8 +216,6 @@ Node* parsePrefixExpression(void* arg)
 Node* parseInfixExpression(void* arg)
 {
   Node* left = (Node*)linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  static int leftAllocCount = 0;
-  FORGE_LOG_TRACE("Allocating a left node %d", leftAllocCount++);
   Token token = input->at(tokenIndex);
   if(arg == NULL)
   {
@@ -240,8 +231,6 @@ Node* parseInfixExpression(void* arg)
   right = parseExpression(precedence);
   if(match(CLOSE_PARANTHESIS)){}
   initBinaryOpNode(left, (Node*)arg , right, opcode);
-  static int binaryAllocCount = 0;
-  FORGE_LOG_TRACE("allocating a binary operator node %d", binaryAllocCount++);
   tokenIndex++;
   return left;
 }
@@ -328,19 +317,14 @@ Node* parseIfExpression(void* arg)
     exit(1);
   }
 
-  static int ifAllocCount = 0;
-  FORGE_LOG_TRACE("Allocating an if node %d", ifAllocCount++);
 
-  FORGE_LOG_TRACE("Position: %s", input->at(tokenIndex).literal.c_str());
   Node* condition = nullptr;
   condition = parseExpression(Precedence::LOWEST);
   tokenIndex++;
-  FORGE_LOG_TRACE("Position: %s", input->at(tokenIndex).literal.c_str());
   
   // - - - Skipping over the close paranthesis
   if(match(CLOSE_PARANTHESIS)){}
 
-  FORGE_LOG_TRACE("Position: %s", input->at(tokenIndex).literal.c_str());
 
   if(!match(OPEN_BRACE))
   {
@@ -366,8 +350,6 @@ Node* parseExpression(int precedence)
   Token token = input->at(tokenIndex);
   auto it = prefixParseFunctions.find(token.type);
   Node* left = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  static int expressionAllocCount = 0;
-  FORGE_LOG_TRACE("Allocating an expression node %d", expressionAllocCount++);
   if(it == prefixParseFunctions.end())
   {
     FORGE_LOG_ERROR("Syntax error : expected a prefix parse function for token type %s", getTokenTypeString(input->at(tokenIndex).type).c_str());
@@ -381,7 +363,6 @@ Node* parseExpression(int precedence)
   while (precedence < peekPrecedence())
   {
     tokenIndex++;
-    FORGE_LOG_DEBUG("At token: %s", input->at(tokenIndex).literal.c_str());
     auto it = infixParseFunctions.find(input->at(tokenIndex).type);
     if(it == infixParseFunctions.end())
     {
@@ -405,8 +386,6 @@ Node* parseReturnStatement()
   }
 
   Node* returnNode = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  static int returnAllocCount = 0;
-  FORGE_LOG_TRACE("Allocating two return node %d", returnAllocCount += 2);
 
   Node* value = nullptr;
   value = parseExpression(Precedence::LOWEST);
@@ -450,8 +429,6 @@ Node* parseAssignmentExpression()
   tokenIndex++;
 
   Node* assigmentNode = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  static int assignmentAllocCount = 0;
-  FORGE_LOG_TRACE("Allocating an assignment node %d", assignmentAllocCount++);
   initAssignmentNode(assigmentNode, variableName, rhs);
   return assigmentNode;
 }
@@ -516,7 +493,7 @@ Node* parseFunctionLiteral(void* arg)
   }
 
   Block* fnBody = parseBlockStatement();
-  for (int i = 0; i < program->allocator.allocated; i += sizeof(Node))
+  for (u64 i = 0; i < program->allocator.allocated; i += sizeof(Node))
       {
         Node* node = (Node*)((char*)program->allocator.memory + i);
         FORGE_LOG_DEBUG(getNodeString(node).c_str());

@@ -20,7 +20,6 @@ bool initNumberNode(Node* NODE, i64 VALUE)
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST Number Node");
   
   NODE->type                        = NODE_TYPE_NUMBER;
-  FORGE_LOG_TRACE("%d, value receieved for %p", VALUE, NODE);
   NODE->context.numberContext.value = VALUE;
 
   return true;
@@ -58,7 +57,6 @@ bool initBinaryOpNode(Node* NODE, Node* LEFT_NODE, Node* RIGHT_NODE, BinaryOpera
     return false;
   }
   
-  FORGE_LOG_TRACE("Initializing a binary operator node with left %p and right %p", LEFT_NODE, RIGHT_NODE);
   NODE->context.binaryContext.left      = LEFT_NODE;
   NODE->context.binaryContext.right     = RIGHT_NODE;
   NODE->context.binaryContext.opcode    = OPCODE;
