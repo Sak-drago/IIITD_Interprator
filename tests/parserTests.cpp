@@ -1,120 +1,93 @@
 #include "parserTests.h"
 #include "../include/parser.h"
 #include "../include/tokenizer.h"
-#include "../library/include/filesystem.h"
+
+static Program program;
 
 
-// - - - @Asher: expectTests does not support nodes. So, I am just printing the nodes for now
+
+i32 getNodeCount()
+{
+  return program.allocator.allocated / sizeof(Node);
+}
+
+void printProgram()
+{
+  FORGE_LOG_INFO("Printing the program generated :-");
+  FORGE_LOG_TRACE("Program had %d Nodes in %d statements", getNodeCount(), program.statements.size());  
+  for (Node* node : program.statements)
+  {
+    FORGE_LOG_DEBUG(getNodeString(node).c_str());
+  }
+}
+
+void readyProgram()
+{
+  static bool done = false;
+  if (!done)
+  {
+    std::vector<Node*> statements;
+    program.statements = statements;
+    createLinearAllocator(1024 * 1024, 0, NULL, &program.allocator);
+    done = true;
+    return;
+  }
+  linearAllocFree(&program.allocator);    
+  program.statements.clear();  
+}
+
+
 // - - - Check Assignment Statements - - -
 u8 checkParserAssignment()
 {
-    Program program;
-    std::vector<Node*> statements;
-    program.statements = statements;
+  // - - - For simple assign Statement
+  readyProgram();  
+  const char* customString = "Plag myVar = 1";
+  FORGE_LOG_TRACE("Working on the statement %s", customString);
+  std::vector<Token> tokens = tokenize(customString);
+
+  produceAST(&tokens, &program);
+  printProgram();  
+  expectShouldBe(2, getNodeCount());
     
-    // - - - For simple assign Statement
-    const char* customString = "Plag myVar = 1";
-    std::vector<Token> tokens = tokenize(customString);
-    
-    createLinearAllocator(1024 * 1024, NULL, &program.allocator);
-    produceAST(&tokens, &program);
+  FORGE_LOG_DEBUG("- - - \n");
+   
+  readyProgram();  
+  customString = "Plag myVar = (1 + 2)";
+  FORGE_LOG_TRACE("Working on the statement %s", customString);
+  tokens = tokenize(customString);
 
-    for (Node* node : program.statements)
-    {
-        FORGE_LOG_DEBUG(getNodeString(node).c_str());
-    }
-
-    FORGE_LOG_INFO("PRINTING ALL NODES ALLOCATED");
-
-    for (u64 i = 0; i < program.allocator.allocated; i += sizeof(Node))
-    {
-        Node* node = (Node*)((char*)program.allocator.memory + i);
-        FORGE_LOG_DEBUG(getNodeString(node).c_str());
-    }
-
-    destroyLinearAllocator(&program.allocator);
-    program.statements.clear();
-    FORGE_LOG_DEBUG("==============================================================");
-    
-    customString = "Plag myVar = 1+2";
-    tokens = tokenize(customString);
-
-    createLinearAllocator(1024 * 1024, NULL, &program.allocator);
-    produceAST(&tokens, &program);
-
-    FORGE_LOG_DEBUG("Printing all nodes");
-    for (Node* node : program.statements)
-    {
-        FORGE_LOG_DEBUG(getNodeString(node).c_str());
-    }
-
-    FORGE_LOG_INFO("PRINTING ALL NODES ALLOCATED");
-
-    for (u64 i = 0; i < program.allocator.allocated; i += sizeof(Node))
-    {
-        Node* node = (Node*)((char*)program.allocator.memory + i);
-        FORGE_LOG_DEBUG(getNodeString(node).c_str());
-    }
-
-    destroyLinearAllocator(&program.allocator);
-
-    FORGE_LOG_INFO("ASSIGNMNET STATEMENT TESTS COMPLETED");
-    return 1;
+  produceAST(&tokens, &program);
+  printProgram();  
+  expectShouldBe(4, getNodeCount());
+  return 1;
 }
 
 // - - - Check Return Statements - - -
 u8 checkParserReturn()
 {
-    Program program;
-    std::vector<Node*> statements;
-    program.statements = statements;
+  // - - - For simple return statement
+  readyProgram();
+  const char* customString = "return (1)";
+  FORGE_LOG_TRACE("Working on the statement %s", customString);
+  std::vector<Token> tokens = tokenize(customString);
 
-    // - - - For simple return statement
-    const char* customString = "return 1";
-    std::vector<Token> tokens = tokenize(customString);
+  produceAST(&tokens, &program);
+  printProgram();  
+  expectShouldBe(2, getNodeCount());  
 
-    createLinearAllocator(1024 * 1024, NULL, &program.allocator);
-    produceAST(&tokens, &program);
+  FORGE_LOG_DEBUG(" - - - \n");
 
-    for (Node* node : program.statements)
-    {
-        FORGE_LOG_DEBUG(getNodeString(node).c_str());
-    }
+  readyProgram();  
+  customString = "return (1+2)";
+  FORGE_LOG_TRACE("Working on the statement %s", customString);
+  tokens = tokenize(customString);
 
-    FORGE_LOG_INFO("PRINTING ALL NODES ALLOCATED");
+  produceAST(&tokens, &program);
+  printProgram();  
+  expectShouldBe(4, getNodeCount());  
 
-    for (u64 i = 0; i < program.allocator.allocated; i += sizeof(Node))
-    {
-        Node* node = (Node*)((char*)program.allocator.memory + i);
-        FORGE_LOG_DEBUG(getNodeString(node).c_str());
-    }
-
-    destroyLinearAllocator(&program.allocator);
-    program.statements.clear();
-    FORGE_LOG_DEBUG("==============================================================");
-
-    customString = "return 1+2";
-    tokens = tokenize(customString);
-
-    createLinearAllocator(1024 * 1024, NULL, &program.allocator);
-    produceAST(&tokens, &program);
-
-    for (Node* node : program.statements)
-    {
-        FORGE_LOG_DEBUG(getNodeString(node).c_str());
-    }
-
-    FORGE_LOG_INFO("PRINTING ALL NODES ALLOCATED");
-
-    for(u64 i = 0; i < program.allocator.allocated; i += sizeof(Node))
-    {
-        Node* node = (Node*)((char*)program.allocator.memory + i);
-        FORGE_LOG_DEBUG(getNodeString(node).c_str());
-    }
-
-    destroyLinearAllocator(&program.allocator);
-    FORGE_LOG_INFO("RETURN STATEMENT TESTS COMPLETED");
-    return 1;
+  return 1;
 }
 
 // - - - Check Expression Statements - - -
@@ -128,7 +101,7 @@ u8 checkParserExpression()
     const char* customString = "1+2-3";
     std::vector<Token> tokens = tokenize(customString);
 
-    createLinearAllocator(1024 * 1024, NULL, &program.allocator);
+    createLinearAllocator(1024 * 1024, 0, NULL, &program.allocator);
     produceAST(&tokens, &program);
 
     for (Node* node : program.statements)
@@ -147,12 +120,13 @@ u8 checkParserExpression()
 
     destroyLinearAllocator(&program.allocator);
     program.statements.clear();
-    FORGE_LOG_DEBUG("==============================================================");
+    FORGE_LOG_DEBUG(" - - - \n");
+    exit(1);
 
     customString = "1+2*3/4";
     tokens = tokenize(customString);
 
-    createLinearAllocator(1024 * 1024, NULL, &program.allocator);
+    createLinearAllocator(1024 * 1024, 0, NULL, &program.allocator);
     produceAST(&tokens, &program);
 
     for (Node* node : program.statements)
@@ -175,7 +149,7 @@ u8 checkParserExpression()
     customString = "1 > 2";
     tokens = tokenize(customString);
 
-    createLinearAllocator(1024 * 1024, NULL, &program.allocator);
+    createLinearAllocator(1024 * 1024, 0, NULL, &program.allocator);
     produceAST(&tokens, &program);
 
     for (Node* node : program.statements)
@@ -209,7 +183,7 @@ u8 checkParserIfBlock()
     const char* customString = "if (1 > 2) { return 1 }";
     std::vector<Token> tokens = tokenize(customString);
 
-    createLinearAllocator(1024 * 1024, NULL, &program.allocator);
+    createLinearAllocator(1024 * 1024, 0, NULL, &program.allocator);
     produceAST(&tokens, &program);
 
     for (Node* node : program.statements)
@@ -233,7 +207,7 @@ u8 checkParserIfBlock()
     customString = "if (1 > 2) { return 1 } else { return 2 }";
     tokens = tokenize(customString);
 
-    createLinearAllocator(1024 * 1024, NULL, &program.allocator);
+    createLinearAllocator(1024 * 1024, 0, NULL, &program.allocator);
     produceAST(&tokens, &program);
 
     for (Node* node : program.statements)
@@ -267,7 +241,7 @@ u8 checkParserFunctionBlock()
     const char* customString = "Fn() { return 1 }";
     std::vector<Token> tokens = tokenize(customString);
 
-    createLinearAllocator(1024 * 1024, NULL, &program.allocator);
+    createLinearAllocator(1024 * 1024, 0, NULL, &program.allocator);
     produceAST(&tokens, &program);
 
     for (Node* node : program.statements)
@@ -290,7 +264,7 @@ u8 checkParserFunctionBlock()
     customString = "Fn(x,y) { return 1+2 }";
     tokens = tokenize(customString);
 
-    createLinearAllocator(1024 * 1024, NULL, &program.allocator);
+    createLinearAllocator(1024 * 1024, 0,  NULL, &program.allocator);
     produceAST(&tokens, &program);
 
     for (Node* node : program.statements)

@@ -13,7 +13,9 @@ std::string getNodeID(Node* node) {
     return oss.str();
 }
 
-// - - - Initialize all node types - - - 
+
+// - - - Initialize all node types - - -
+
 // - - - number nodes
 bool initNumberNode(Node* NODE, i64 VALUE)
 {
@@ -27,7 +29,6 @@ bool initNumberNode(Node* NODE, i64 VALUE)
 
 
 // - - -  initialize a boolean node (true/false)
-
 bool initBoolNode(Node* NODE, bool VALUE)
 {
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST Boolean Node");
@@ -174,6 +175,7 @@ bool initFunctionNode(Node* NODE, std::vector<FunctionParameter> PARAMETERS, Blo
 
   return true;
 }
+
 
 // - - - Print Nodes - - - 
 

@@ -90,11 +90,9 @@ typedef union NodeContext
     struct Node* condition;
     struct Block* consequence;
     struct Block* alternative;
-
   } ifContext;
   
   
-
   struct
   {
     std::vector<FunctionParameter> parameters;

@@ -6,11 +6,11 @@
 #include "../include/tokens.h"
 #include <vector>
 
-static Program* program;
-static std::vector<Token>* input = NULL;
-static u64 tokenIndex = 0;
-std::unordered_map<TokenType, Node*(*)(void*)> prefixParseFunctions;
-std::unordered_map<TokenType, Node*(*)(void*)> infixParseFunctions;
+static Program*                                 program;
+static std::vector<Token>*                      input                   = NULL;
+static u64                                      tokenIndex              = 0;
+std::unordered_map<TokenType, Node*(*)(void*)>  prefixParseFunctions;
+std::unordered_map<TokenType, Node*(*)(void*)>  infixParseFunctions;
 // - - - Helper Methods - - -
 
 // - - - Precedence order
@@ -97,6 +97,13 @@ int peekPrecedence()
   return LOWEST;
 }
 
+void raiseSynaxError(TokenType EXPECTED_TYPE)
+{ 
+  FORGE_LOG_FATAL("Syntax error : at token index %d, expected a type of %s but recieved %s", 
+                  tokenIndex, 
+                  getTokenTypeString(EXPECTED_TYPE).c_str(), 
+                  getTokenTypeString(input->at(tokenIndex).type).c_str());
+}
 
 // - - - Binary Operator setters - - -
 
@@ -138,10 +145,6 @@ bool match(TokenType EXPECTED_TYPE)
     tokenIndex++;
     return true;
   }
-  FORGE_LOG_FATAL("Syntax error : at token index %d, expected a type of %s but recieved %s", 
-                  tokenIndex, 
-                  getTokenTypeString(EXPECTED_TYPE).c_str(), 
-                  getTokenTypeString(input->at(tokenIndex).type).c_str());
   return false;
 }
 
@@ -166,16 +169,9 @@ Node* parseStatement()
   Token token = input->at(tokenIndex); 
   switch (token.type)
   {
-    case PLAG: 
-      FORGE_LOG_DEBUG("Parsing a PLAG statement");
-      return parseAssignmentExpression();
-
-    case RETURN:
-      FORGE_LOG_DEBUG("Parsing a RETURN statement");
-      return parseReturnStatement();
-
-    default:
-      return parseExpressionStatement();
+    case PLAG   :     return parseAssignmentExpression();
+    case RETURN :     return parseReturnStatement();
+    default     :     return parseExpressionStatement();
   }
 }
 
@@ -248,16 +244,16 @@ Node* parseIdentifier(void* arg)
   return (Node*)arg;
 }
 
-Node* parseInteger(void* arg)
+Node* parseInteger(void* ARG)
 {
+  FORGE_ASSERT_MESSAGE(ARG != NULL, "Cannot initialize a null AST number node");
+
   Token token = input->at(tokenIndex);
-  if(arg == NULL)
-  {
-    FORGE_LOG_ERROR("Cannot initialize a NULL AST Number Node");
-    exit(1);
-  }
-  initNumberNode((Node*) arg, std::stoi(token.literal));
-  return (Node*)arg;
+  initNumberNode((Node*) ARG, std::stoi(token.literal));
+
+
+  if (tokenIndex + 1 < input->size() && input->at(tokenIndex + 1).type == CLOSE_PARANTHESIS) tokenIndex++;
+  return (Node*)ARG;
 }
 
 Node* parseExpressionStatement()
@@ -291,12 +287,8 @@ Node* parseBoolean(void* arg)
 Node* parseGroupedExpress(void* arg)
 {
   tokenIndex++;
-  Node* expression = parseExpression(Precedence::LOWEST);
-  if (!match(CLOSE_PARANTHESIS))
-  {
-    FORGE_LOG_ERROR("Syntax error : expected a closing paranthesis");
-    exit(1);
-  }
+  Node* expression                = parseExpression(Precedence::LOWEST);
+  if (!match(CLOSE_PARANTHESIS))  raiseSynaxError(CLOSE_PARANTHESIS);
   return expression;
 }
 
@@ -347,30 +339,33 @@ Node* parseIfExpression(void* arg)
 
 Node* parseExpression(int precedence)
 {
-  Token token = input->at(tokenIndex);
-  auto it = prefixParseFunctions.find(token.type);
-  Node* left = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  if(it == prefixParseFunctions.end())
-  {
-    FORGE_LOG_ERROR("Syntax error : expected a prefix parse function for token type %s", getTokenTypeString(input->at(tokenIndex).type).c_str());
-  }
+  // - - - see the current token and allocate a left node
+  Token token                             = input->at(tokenIndex);
+  Node* left                              = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  FORGE_LOG_TRACE("Type : %s", getTokenTypeString(token.type).c_str());
+  FORGE_LOG_TRACE("%p", left);
+  
+  // - - - see if we have a valid prefix parsing function
+  auto  it                                = prefixParseFunctions.find(token.type);
+  if (it == prefixParseFunctions.end())   raiseSynaxError(input->at(tokenIndex).type);
   else
   {
-    Node*(*prefix)(void*) = it->second;
-    left = prefix((void*)left);
+    Node*(*prefix)(void*)                 = it->second;           // - - - here prefix is the correct function we need to parse the prefix
+    left                                  = prefix((void*)left);  // - - - call the prefix function
   }
 
+  // - - - parse the infix now
   while (precedence < peekPrecedence())
   {
     tokenIndex++;
-    auto it = infixParseFunctions.find(input->at(tokenIndex).type);
-    if(it == infixParseFunctions.end())
+    auto it                               = infixParseFunctions.find(input->at(tokenIndex).type);
+    if (it == infixParseFunctions.end())                          // - - - if the function doesnt exist, we can simply return the left node
     {
       FORGE_LOG_DEBUG("No Infix parser found for %s", input->at(tokenIndex).literal.c_str());
       return left;
     }
-    Node*(*infix)(void*) = it->second;
-    left = infix((void*)left);
+    Node*(*infix)(void*)                  = it->second;           // - - - here, infix is the correct infix parsing function
+    left                                  = infix((void*)left);   // - - - call the infix function
   }
 
   return left;
@@ -378,57 +373,42 @@ Node* parseExpression(int precedence)
 
 Node* parseReturnStatement()
 {
-  Token token = input->at(tokenIndex);
-  if (!match(RETURN))
-  {
-    FORGE_LOG_ERROR("Syntax error in Return statement");
-    exit(1);
-  }
+  // - - - Match whether we have the syntax :   Return <var>
+  if (!match(RETURN))             raiseSynaxError(RETURN);
 
-  Node* returnNode = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-
-  Node* value = nullptr;
-  value = parseExpression(Precedence::LOWEST);
-  initReturnNode(returnNode, value);
+  // - - - parse the value and and move on to the next token
+  match(OPEN_PARANTHESIS);        // - - - if we start with '(', consume it.
+  // NOTE: @Sakshat, this match freed one memory leak for statement "return (1)". We were calling parse expression once more on OPEN_PARANTHESIS
+  Node* value                     = parseExpression(Precedence::LOWEST);
   tokenIndex++;
+ 
+  // - - - allocate and set the return node
+  Node* returnNode                = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  initReturnNode(returnNode, value);
   return returnNode;
 }
 
+
 Node* parseAssignmentExpression()
 {
-  Token token = input->at(tokenIndex+1); //- - - +1 to check the variable name
+  // - - - Match whether we have the syntax:  Plag <var>
+  if (!match(PLAG))             raiseSynaxError(PLAG);
+  if (!match(IDENTIFIER))       raiseSynaxError(IDENTIFIER);
+ 
+  // - - - get the variable name
+  Token       var               = input->at(tokenIndex+1);        
+  std::string variableName      = input->at(tokenIndex).literal;
 
-  if (!match(PLAG))
-  {
-    FORGE_LOG_ERROR("Syntax error in Plag statement");
-    exit(1);
-  }
+  // - - - Match whether we have the synax: = <rhs>
+  if (!match(ASSIGN))           raiseSynaxError(ASSIGN);
+       match(OPEN_PARANTHESIS); // - - - handle the case of a paranthesis '('
 
-  if (!match(IDENTIFIER))
-  {
-    FORGE_LOG_ERROR("No variable to assign to.");
-    exit(1);
-  }
-  
-  std::string variableName = input->at(tokenIndex - 1).literal;
-
-  if (!match(ASSIGN))
-  {
-    FORGE_LOG_ERROR("Syntax error : expected '=' after variableName");
-    exit(1);
-  }
-
-  if(match(OPEN_PARANTHESIS)){}
-  FORGE_LOG_FATAL("Parsing an assignment statement");
-  FORGE_LOG_TRACE("Position: %s", input->at(tokenIndex).literal.c_str());
-
-  FORGE_LOG_WARNING("Token literal %s", token.literal.c_str());
-
-  Node* rhs = nullptr;
-  rhs = parseExpression(Precedence::LOWEST);
+  // - - - construct the rhs
+  Node* rhs                     = parseExpression(Precedence::LOWEST); 
   tokenIndex++;
 
-  Node* assigmentNode = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  // - - - allocate and return the assignmnet Node
+  Node* assigmentNode           = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
   initAssignmentNode(assigmentNode, variableName, rhs);
   return assigmentNode;
 }
@@ -505,31 +485,43 @@ Node* parseFunctionLiteral(void* arg)
 // - - - AST Creation Function
 bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
 {
-  FORGE_ASSERT_MESSAGE(TOKENS != NULL, "TOKENS cannot be NULL to construct a program");
-  FORGE_ASSERT_MESSAGE(PROGRAM != NULL, "Program cannot be NULL to construct a program");
+  FORGE_ASSERT_MESSAGE(TOKENS   != NULL,  "TOKENS cannot be NULL to construct a program");
+  FORGE_ASSERT_MESSAGE(PROGRAM  != NULL,  "Program cannot be NULL to construct a program");
 
-  input = TOKENS;
-  program = PROGRAM;
-  tokenIndex = 0;
+  input                 = TOKENS;
+  program               = PROGRAM;
+  tokenIndex            = 0;
+  static bool firstTime = true;
 
-  // - - - Registering the parse functions
-  registerPrefix(NOT, parsePrefixExpression);
-  registerPrefix(IDENTIFIER, parseIdentifier);
-  registerPrefix(NUMBER, parseInteger);
-  registerPrefix(TRUE, parseBoolean);
-  registerPrefix(FALSE, parseBoolean);
-  registerInfix(EQUALS, parseInfixExpression);
-  registerInfix(NOT_EQUALS, parseInfixExpression);
-  registerInfix(LESSER, parseInfixExpression);
-  registerInfix(GREATER, parseInfixExpression);
-  registerInfix(LESSER_EQUAL, parseInfixExpression);
-  registerInfix(GREATER_EQUAL, parseInfixExpression);
-  registerInfix(ADD, parseInfixExpression);
-  registerInfix(SUB, parseInfixExpression);
-  registerInfix(BINARY_OPERATOR, parseInfixExpression);
-  registerPrefix(OPEN_PARANTHESIS, parseGroupedExpress);
-  registerPrefix(IF, parseIfExpression);
-  registerPrefix(FUNCTION, parseFunctionLiteral);
+  if (firstTime)
+  {
+    FORGE_LOG_INFO("Registering parse functions");
+
+    // - - - Registering the parse functions - - - 
+
+    // - - - prefixes
+    registerPrefix(NOT,               parsePrefixExpression);
+    registerPrefix(IDENTIFIER,        parseIdentifier);
+    registerPrefix(NUMBER,            parseInteger);
+    registerPrefix(TRUE,              parseBoolean);
+    registerPrefix(FALSE,             parseBoolean);
+    registerPrefix(OPEN_PARANTHESIS,  parseGroupedExpress);
+    registerPrefix(IF,                parseIfExpression);
+    registerPrefix(FUNCTION,          parseFunctionLiteral);
+
+    // - - - infixes
+    registerInfix(EQUALS,             parseInfixExpression);
+    registerInfix(NOT_EQUALS,         parseInfixExpression);
+    registerInfix(LESSER,             parseInfixExpression);
+    registerInfix(GREATER,            parseInfixExpression);
+    registerInfix(LESSER_EQUAL,       parseInfixExpression);
+    registerInfix(GREATER_EQUAL,      parseInfixExpression);
+    registerInfix(ADD,                parseInfixExpression);
+    registerInfix(SUB,                parseInfixExpression);
+    registerInfix(BINARY_OPERATOR,    parseInfixExpression);
+
+    firstTime = false;
+  }
 
   while (tokenIndex < input->size())
   {

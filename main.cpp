@@ -47,7 +47,7 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
 
       Program program;
       // - - - 1 MB assigned for now
-      createLinearAllocator(1024 * 1024, NULL, &program.allocator);
+      createLinearAllocator(1024 * 1024, 0, NULL, &program.allocator);
       produceAST(&tokens, &program);
 
       for (Node* node : program.statements)

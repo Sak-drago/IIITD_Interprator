@@ -4,8 +4,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <string>
 #ifdef __cplusplus
+#include <string>
 extern "C" {
 #endif
 
