@@ -176,7 +176,6 @@ Node* parseStatement()
 }
 
 // - - - Block Statement
-
 Block* parseBlockStatement()
 {
   Block* block = (Block*) linearAllocatorAllocate(&program->allocator, sizeof(Block));
@@ -190,6 +189,7 @@ Block* parseBlockStatement()
   return block;
 }
 
+// - - - Prefix
 // - - - NOTE: Approach followed for parsing an expression is the "PRATT PARSER" approach.
 Node* parsePrefixExpression(void* arg) 
 {
@@ -200,7 +200,7 @@ Node* parsePrefixExpression(void* arg)
     exit(1);
   }
   std::string operatorType = token.literal;
-  tokenIndex++;
+  //tokenIndex++;
 
   // - - - TODO: @Asher: Only supports "!" operator for now. Add support for "-" operator.
   Node* right = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
@@ -209,28 +209,30 @@ Node* parsePrefixExpression(void* arg)
   return (Node*)arg;
 }
 
-Node* parseInfixExpression(void* arg)
+// - - - Infix
+Node* parseInfixExpression(void* ARG)
 {
-  Node* left = (Node*)linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  Token token = input->at(tokenIndex);
-  if(arg == NULL)
-  {
-    FORGE_LOG_ERROR("Cannot initialize a NULL AST Binary Operator Node");
-    exit(1);
-  }
+  FORGE_ASSERT_MESSAGE(ARG != NULL, "Cannot initialize a NULL AST Binary Operator Node");
 
+  // - - - allocate a node 
+  Node* left            = (Node*)linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  Token token           = input->at(tokenIndex);
+
+  // - - - get the opcode, precedence and move to the next token
   BinaryOperator opcode = getBinaryOperator(token);
   int precedence        = curPrecedence();
   tokenIndex++;
 
-  Node* right = nullptr;
-  right = parseExpression(precedence);
-  if(match(CLOSE_PARANTHESIS)){}
-  initBinaryOpNode(left, (Node*)arg , right, opcode);
-  tokenIndex++;
+  // - - - parse the expression on the right. If we have a ')' consume it
+  Node* right           = parseExpression(precedence);
+  match(CLOSE_PARANTHESIS);
+
+  // - - - initialize the binary operator node and move onto the next token
+  initBinaryOpNode(left, (Node*)ARG , right, opcode);
   return left;
 }
 
+// - - - identifier
 Node* parseIdentifier(void* arg)
 {
   Token token = input->at(tokenIndex);
@@ -244,6 +246,7 @@ Node* parseIdentifier(void* arg)
   return (Node*)arg;
 }
 
+// - - - integer
 Node* parseInteger(void* ARG)
 {
   FORGE_ASSERT_MESSAGE(ARG != NULL, "Cannot initialize a null AST number node");
@@ -256,6 +259,7 @@ Node* parseInteger(void* ARG)
   return (Node*)ARG;
 }
 
+// - - - expression statement
 Node* parseExpressionStatement()
 {
   Node* expression = nullptr;
@@ -342,12 +346,13 @@ Node* parseExpression(int precedence)
   // - - - see the current token and allocate a left node
   Token token                             = input->at(tokenIndex);
   Node* left                              = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  FORGE_LOG_TRACE("Type : %s", getTokenTypeString(token.type).c_str());
-  FORGE_LOG_TRACE("%p", left);
   
   // - - - see if we have a valid prefix parsing function
   auto  it                                = prefixParseFunctions.find(token.type);
-  if (it == prefixParseFunctions.end())   raiseSynaxError(input->at(tokenIndex).type);
+  if (it == prefixParseFunctions.end())   
+  {
+    raiseSynaxError(input->at(tokenIndex).type);  
+  }
   else
   {
     Node*(*prefix)(void*)                 = it->second;           // - - - here prefix is the correct function we need to parse the prefix

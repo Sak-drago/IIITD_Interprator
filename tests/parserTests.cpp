@@ -78,6 +78,7 @@ u8 checkParserReturn()
 
   FORGE_LOG_DEBUG(" - - - \n");
 
+  // - - - For a more complex return statement 
   readyProgram();  
   customString = "return (1+2)";
   FORGE_LOG_TRACE("Working on the statement %s", customString);
@@ -93,21 +94,16 @@ u8 checkParserReturn()
 // - - - Check Expression Statements - - -
 u8 checkParserExpression()
 {
-    Program program;
-    std::vector<Node*> statements;
-    program.statements = statements;
-
     // - - - For simple expression statement
-    const char* customString = "1+2-3";
-    std::vector<Token> tokens = tokenize(customString);
+    readyProgram();
+    const char* customString    = "1+2-3";
+    FORGE_LOG_TRACE("Working on the statement %s", customString);
+    std::vector<Token> tokens   = tokenize(customString);
 
-    createLinearAllocator(1024 * 1024, 0, NULL, &program.allocator);
     produceAST(&tokens, &program);
+    printProgram();
+    expectShouldBe(5, getNodeCount());
 
-    for (Node* node : program.statements)
-    {
-        FORGE_LOG_DEBUG(getNodeString(node).c_str());
-    }
 
     FORGE_LOG_INFO("PRINTING ALL NODES ALLOCATED");
 
@@ -117,11 +113,11 @@ u8 checkParserExpression()
         Node* node = (Node*)((char*)program.allocator.memory + i);
         FORGE_LOG_DEBUG(getNodeString(node).c_str());
     }
+    exit(1);
 
     destroyLinearAllocator(&program.allocator);
     program.statements.clear();
     FORGE_LOG_DEBUG(" - - - \n");
-    exit(1);
 
     customString = "1+2*3/4";
     tokens = tokenize(customString);
