@@ -6,16 +6,34 @@
 #include "../include/tokens.h"
 #include <vector>
 
-static Program*                                 program;
-static std::vector<Token>*                      input                   = NULL;
-static u64                                      tokenIndex              = 0;
+static Program*              program      = NULL;
+static std::vector<Token>*   input        = NULL;
+static u64                   tokenIndex   = 0;
+
+
+// - - -  Prefix and Infix Functions  - - -
+
+// - - - maps to store the functions from token types to parse functions
 std::unordered_map<TokenType, Node*(*)(void*)>  prefixParseFunctions;
 std::unordered_map<TokenType, Node*(*)(void*)>  infixParseFunctions;
-// - - - Helper Methods - - -
 
-// - - - Precedence order
+
+// - - - add a prefix or infix
+void registerPrefix(TokenType TYPE, Node* (*PARSE_FUNCTIONS)(void*))
+{
+  prefixParseFunctions[TYPE] = PARSE_FUNCTIONS;
+}
+void registerInfix(TokenType type, Node* (*parseFunction)(void*))
+{
+  infixParseFunctions[type] = parseFunction;
+}
+
+
+// - - - Precedence order - - -
+
 // - - - TODO: @Asher: Just make the precedence equal. Right now, ">" > "<".
-typedef enum Precendence{
+typedef enum Precendence
+{
   LOWEST,
   EQUALS_PRECEDENCE,
   NOT_EQUALS_PRECEDENCE,
@@ -45,15 +63,11 @@ std::unordered_map<TokenType, Precedence> precedencesMapping =
   {NOT, NOT_PRECEDENCE}
 };
 
-// - - - Checks what Precedence does the next token have
+// - - - Checks what Precedence does the current token have
 int curPrecedence()
 {
-  if (input->size() <= tokenIndex)
-  {
-    return LOWEST;
-  }
-
-  Token token = input->at(tokenIndex);
+  if (input->size() <= tokenIndex)    return LOWEST;
+  Token token                         = input->at(tokenIndex);
 
   if (precedencesMapping.find(token.type) != precedencesMapping.end())
   {
@@ -61,17 +75,11 @@ int curPrecedence()
     {
       switch (token.literal[0])
       {
-      case '+':
-      case '-':
-        return SUM;
-        break;
-      case '*':
-      case '/':
-        return PRODUCT;
-        break;
-      default:
-        return precedencesMapping[token.type];
-        break;
+        case '+':
+        case '-': return SUM;
+        case '*':
+        case '/': return PRODUCT;
+        default : return precedencesMapping[token.type];
       }
     }
     return precedencesMapping[token.type];
@@ -79,33 +87,22 @@ int curPrecedence()
 
   return LOWEST;
 }
-
+// - - - Checks what Precedence does the next token have
 int peekPrecedence()
 {
-  if (input->size() <= tokenIndex+1)
-  {
-    return LOWEST;
-  }
-
-  Token token = input->at(tokenIndex+1);
+  if (input->size() <= tokenIndex+1)    return LOWEST;
+  Token token                           = input->at(tokenIndex+1);
 
   if (precedencesMapping.find(token.type) != precedencesMapping.end())
-  {
-    return precedencesMapping[token.type];
+  {    
+    return precedencesMapping[token.type];  
   }
 
   return LOWEST;
 }
 
-void raiseSynaxError(TokenType EXPECTED_TYPE)
-{ 
-  FORGE_LOG_FATAL("Syntax error : at token index %d, expected a type of %s but recieved %s", 
-                  tokenIndex, 
-                  getTokenTypeString(EXPECTED_TYPE).c_str(), 
-                  getTokenTypeString(input->at(tokenIndex).type).c_str());
-}
 
-// - - - Binary Operator setters - - -
+// - - - Helper functions - - -
 
 // - - - TODO: Asher: Make it pretty
 BinaryOperator getBinaryOperator(Token token)
@@ -134,6 +131,14 @@ BinaryOperator getBinaryOperator(Token token)
   exit(1);
 }
 
+void raiseSynaxError(TokenType EXPECTED_TYPE)
+{ 
+  FORGE_LOG_FATAL("Syntax error : at token index %d, expected a type of %s but recieved %s", 
+                  tokenIndex, 
+                  getTokenTypeString(EXPECTED_TYPE).c_str(), 
+                  getTokenTypeString(input->at(tokenIndex).type).c_str());
+  // - - - TODO: do something more than printing
+}
 
 // - - - Match the token type and move forward
 bool match(TokenType EXPECTED_TYPE)
@@ -146,16 +151,6 @@ bool match(TokenType EXPECTED_TYPE)
     return true;
   }
   return false;
-}
-
-void registerPrefix(TokenType TYPE, Node* (*PARSE_FUNCTIONS)(void*))
-{
-  prefixParseFunctions[TYPE] = PARSE_FUNCTIONS;
-}
-
-void registerInfix(TokenType type, Node* (*parseFunction)(void*))
-{
-  infixParseFunctions[type] = parseFunction;
 }
 
 
@@ -171,7 +166,7 @@ Node* parseStatement()
   {
     case PLAG   :     return parseAssignmentExpression();
     case RETURN :     return parseReturnStatement();
-    default     :     return parseExpressionStatement();
+    default     :     return parseExpression(LOWEST);
   }
 }
 
@@ -191,10 +186,10 @@ Block* parseBlockStatement()
 
 // - - - Prefix
 // - - - NOTE: Approach followed for parsing an expression is the "PRATT PARSER" approach.
-Node* parsePrefixExpression(void* arg) 
+Node* parsePrefixExpression(void* ARG) 
 {
   Token token = input->at(tokenIndex);
-  if(arg == NULL)
+  if(ARG == NULL)
   {
     FORGE_LOG_ERROR("Cannot initialize a NULL AST Prefix Node");
     exit(1);
@@ -205,8 +200,8 @@ Node* parsePrefixExpression(void* arg)
   // - - - TODO: @Asher: Only supports "!" operator for now. Add support for "-" operator.
   Node* right = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
   right = parseExpression(Precedence::NOT_PRECEDENCE);
-  initPrefixNode((Node*) arg, operatorType.c_str(), right);
-  return (Node*)arg;
+  initPrefixNode((Node*) ARG, operatorType.c_str(), right);
+  return (Node*)ARG;
 }
 
 // - - - Infix
@@ -227,23 +222,23 @@ Node* parseInfixExpression(void* ARG)
   Node* right           = parseExpression(precedence);
   match(CLOSE_PARANTHESIS);
 
-  // - - - initialize the binary operator node and move onto the next token
+  // - - - initialize the binary operator node
   initBinaryOpNode(left, (Node*)ARG , right, opcode);
   return left;
 }
 
 // - - - identifier
-Node* parseIdentifier(void* arg)
+Node* parseIdentifier(void* ARG)
 {
   Token token = input->at(tokenIndex);
-  if(arg == NULL)
+  if(ARG == NULL)
   {
     FORGE_LOG_ERROR("Cannot initialize a NULL AST Variable Node");
     exit(1);
   }
   std::string variName = token.literal;
-  initVariableNode((Node*) arg, variName);
-  return (Node*)arg;
+  initVariableNode((Node*) ARG, variName);
+  return (Node*)ARG;
 }
 
 // - - - integer
@@ -259,27 +254,19 @@ Node* parseInteger(void* ARG)
   return (Node*)ARG;
 }
 
-// - - - expression statement
-Node* parseExpressionStatement()
-{
-  Node* expression = nullptr;
-  expression = parseExpression(Precedence::LOWEST);
-  return expression;
-}
-
-Node* parseBoolean(void* arg)
+Node* parseBoolean(void* ARG)
 {
   Token token = input->at(tokenIndex);
   FORGE_LOG_TRACE("Parsing a boolean value");
   if(token.type == TRUE)
   { 
-    initBoolNode((Node*)arg, true);
-    return (Node*)arg;
+    initBoolNode((Node*)ARG, true);
+    return (Node*)ARG;
   }
   else if(token.type == FALSE)
   {
-    initBoolNode((Node*)arg, false);
-    return (Node*)arg;
+    initBoolNode((Node*)ARG, false);
+    return (Node*)ARG;
   }
   else
   {
@@ -301,18 +288,9 @@ Node* parseGroupedExpress(void* arg)
 Node* parseIfExpression(void* arg)
 {
   Token token = input->at(tokenIndex);
-  if (!match(IF))
-  {
-    FORGE_LOG_ERROR("Syntax error in If statement");
-    exit(1);
-  }
+  if (!match(IF)) raiseSynaxError(IF);
 
-  if(!match(OPEN_PARANTHESIS))
-  {
-    FORGE_LOG_ERROR("Syntax error in If statement");
-    exit(1);
-  }
-
+  if(!match(OPEN_PARANTHESIS)) raiseSynaxError(OPEN_PARANTHESIS);
 
   Node* condition = nullptr;
   condition = parseExpression(Precedence::LOWEST);
@@ -322,6 +300,7 @@ Node* parseIfExpression(void* arg)
   if(match(CLOSE_PARANTHESIS)){}
 
 
+  tokenIndex--;
   if(!match(OPEN_BRACE))
   {
     FORGE_LOG_ERROR("Syntax error in If statement");
@@ -341,7 +320,8 @@ Node* parseIfExpression(void* arg)
   return (Node*)arg;
 }
 
-Node* parseExpression(int precedence)
+// - - - expression
+Node* parseExpression(int PRECEDENCE)
 {
   // - - - see the current token and allocate a left node
   Token token                             = input->at(tokenIndex);
@@ -349,10 +329,7 @@ Node* parseExpression(int precedence)
   
   // - - - see if we have a valid prefix parsing function
   auto  it                                = prefixParseFunctions.find(token.type);
-  if (it == prefixParseFunctions.end())   
-  {
-    raiseSynaxError(input->at(tokenIndex).type);  
-  }
+  if (it == prefixParseFunctions.end())   raiseSynaxError(input->at(tokenIndex).type);  
   else
   {
     Node*(*prefix)(void*)                 = it->second;           // - - - here prefix is the correct function we need to parse the prefix
@@ -360,7 +337,7 @@ Node* parseExpression(int precedence)
   }
 
   // - - - parse the infix now
-  while (precedence < peekPrecedence())
+  while (PRECEDENCE < peekPrecedence())
   {
     tokenIndex++;
     auto it                               = infixParseFunctions.find(input->at(tokenIndex).type);
@@ -376,6 +353,7 @@ Node* parseExpression(int precedence)
   return left;
 }
 
+// - - - return statments
 Node* parseReturnStatement()
 {
   // - - - Match whether we have the syntax :   Return <var>
@@ -393,7 +371,7 @@ Node* parseReturnStatement()
   return returnNode;
 }
 
-
+// - - - assignment expression
 Node* parseAssignmentExpression()
 {
   // - - - Match whether we have the syntax:  Plag <var>
@@ -418,6 +396,7 @@ Node* parseAssignmentExpression()
   return assigmentNode;
 }
 
+// - - - Functions
 std::vector<FunctionParameter> parseFunctionParams()
 {
   std::vector<FunctionParameter> identifiers;
@@ -457,8 +436,6 @@ std::vector<FunctionParameter> parseFunctionParams()
   return identifiers;
 }
 
-// - - - FUNCTION parser
-
 Node* parseFunctionLiteral(void* arg)
 {
   tokenIndex++;
@@ -478,17 +455,12 @@ Node* parseFunctionLiteral(void* arg)
   }
 
   Block* fnBody = parseBlockStatement();
-  for (u64 i = 0; i < program->allocator.allocated; i += sizeof(Node))
-      {
-        Node* node = (Node*)((char*)program->allocator.memory + i);
-        FORGE_LOG_DEBUG(getNodeString(node).c_str());
-      }
   initFunctionNode((Node*)arg, fnLit, fnBody);
   return (Node*)arg;
 }
 
 // - - - AST Creation Function
-bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
+void produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
 {
   FORGE_ASSERT_MESSAGE(TOKENS   != NULL,  "TOKENS cannot be NULL to construct a program");
   FORGE_ASSERT_MESSAGE(PROGRAM  != NULL,  "Program cannot be NULL to construct a program");
@@ -533,6 +505,4 @@ bool produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
     program->statements.push_back(parseStatement());
     tokenIndex++;
   }
-
-  return true;
 }

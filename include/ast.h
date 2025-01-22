@@ -39,16 +39,16 @@ typedef enum NodeType
 
 // - - - Extra data for function nodes (replacement for variables)
 struct FunctionParameter
-  {
-    const char* name;
-  };
+{
+  const char* name;
+};
 
 // - - - context saves the data of an AST Node
 typedef union NodeContext
 {
   struct 
   {
-    i64 value;   
+    i64               value;   
   } numberContext;
 
   struct 
@@ -76,35 +76,34 @@ typedef union NodeContext
   
   struct
   {
-    const char* operatorType;
-    struct Node* right;
+    const char*       operatorType;
+    struct Node*      right;
   } prefixContext;
 
   struct
   {
-    bool value;
+    bool              value;
   } booleanContext;
   
   struct
   {
-    struct Node* condition;
-    struct Block* consequence;
-    struct Block* alternative;
+    struct Node*      condition;
+    struct Block*     consequence;
+    struct Block*     alternative;
   } ifContext;
   
   
   struct
   {
-    std::vector<FunctionParameter> parameters;
-    struct Block* body;
+    std::vector<FunctionParameter>  parameters;
+    struct Block*                   body;
   } functionContext;
-  
 } NodeContext;
 
 // - - - the mighty ast node
 typedef struct Node 
 {
-  Token        token;
+  Token         token;
   NodeType      type;
   NodeContext   context;
 } Node;
@@ -115,29 +114,31 @@ typedef struct Block
   std::vector<Node*> statements;
 } Block;
 
+
 // - - - AST Node related Functions - - - 
 
 // - - - initialize nodes of each type
-FORGE_API bool        initNumberNode       (Node* NODE, i64 VALUE);
+FORGE_API bool        initNumberNode          (Node* NODE, i64 VALUE);
 
-FORGE_API bool        initBoolNode         (Node* NODE, bool VALUE);
+FORGE_API bool        initBoolNode            (Node* NODE, bool VALUE);
 
-FORGE_API bool        initBinaryOpNode     (Node* NODE, Node* LEFT_NODE, Node* RIGHT_NODE, BinaryOperator OPCODE);
+FORGE_API bool        initBinaryOpNode        (Node* NODE, Node* LEFT_NODE, Node* RIGHT_NODE, BinaryOperator OPCODE);
 
-FORGE_API bool        initVariableNode     (Node* NODE, std::string& NAME);
+FORGE_API bool        initVariableNode        (Node* NODE, std::string& NAME);
 
-FORGE_API bool        initAssignmentNode   (Node* NODE, std::string& NAME, Node* VALUE);
+FORGE_API bool        initAssignmentNode      (Node* NODE, std::string& NAME, Node* VALUE);
 
-FORGE_API bool       initReturnNode       (Node* NODE, Node* VALUE);
+FORGE_API bool        initReturnNode          (Node* NODE, Node* VALUE);
 
-FORGE_API bool      initPrefixNode       (Node* NODE, const char* OPERATOR, Node* RIGHT);
+FORGE_API bool        initPrefixNode          (Node* NODE, const char* OPERATOR, Node* RIGHT);
 
-FORGE_API bool      initIfNode           (Node* NODE, Node* CONDITION, Block* CONSEQUENCE, Block* ALTERNATIVE);
+FORGE_API bool        initIfNode              (Node* NODE, Node* CONDITION, Block* CONSEQUENCE, Block* ALTERNATIVE);
 
-FORGE_API bool     initFunctionNode     (Node* NODE, std::vector<FunctionParameter> PARAMETERS, Block* BODY);
+FORGE_API bool        initFunctionNode        (Node* NODE, std::vector<FunctionParameter> PARAMETERS, Block* BODY);
+
 // - - - print a node
-FORGE_API std::string getNodeTypeString (NodeType TYPE);
+FORGE_API std::string getNodeTypeString       (NodeType TYPE);
 
-FORGE_API std::string getNodeString     (Node* NODE);
+FORGE_API std::string getNodeString           (Node* NODE, i8 INDENTATION_LEVEL = 1);
 
-FORGE_API std::string getBinaryOperatorString(BinaryOperator TYPE);
+FORGE_API std::string getBinaryOperatorString (BinaryOperator TYPE);
