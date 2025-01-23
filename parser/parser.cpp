@@ -284,7 +284,6 @@ Node* parseGroupedExpress(void* arg)
 }
 
 // - - - Only supports "IF" with/without "ELSE" statement for now
-// - - - TODO: @Asher: Add ELIF support
 Node* parseIfExpression(void* arg)
 {
   // - - - match if and open parenthesis. Close is managed by parseEXpression

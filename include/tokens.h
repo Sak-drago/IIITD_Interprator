@@ -30,7 +30,6 @@ typedef enum TokenType
   TRUE,
   FALSE,
   IF,
-  ELIF,
   ELSE,
   FOR,
   WHILE,

@@ -48,7 +48,6 @@ const std::string tokenNames[TOKEN_TYPES_COUNT] =
   "TRUE",
   "FALSE",
   "IF",
-  "ELIF",
   "ELSE",
   "FOR",
   "WHILE",
@@ -80,7 +79,6 @@ int readIdentifier(const char* TOKEN, int START)
 std::unordered_map<std::string, TokenType> keywords = 
 {
   {"agar", IF},
-  {"yafir", ELIF},
   {"ya", ELSE},
   {"for", FOR},
   {"while", WHILE},
