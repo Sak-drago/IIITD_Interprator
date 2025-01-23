@@ -17,7 +17,6 @@ void declareTestCase(std::string STRING)
 
 i32 getNodeCount()
 {
-  FORGE_LOG_TRACE("Allocated : %d", program.allocator.allocated);
   return program.allocator.allocated / sizeof(Node);
 }
 
@@ -89,8 +88,8 @@ u8 checkParserExpression()
 // - - - Check If Block
 u8 checkParserIfBlock()
 { 
-  if (!runTestCase("if (1 > 2) { return 1 }", 6))                   return false;
-  if (!runTestCase("if (1 > 2) { return 1 } else { return 2 }", 1)) return false;
+  if (!runTestCase("agar (1 > 2) { return 1 }", 6))                   return false;
+  if (!runTestCase("agar (1 > 2) { return 1 } ya { return 2 }", 8))   return false;
   return 1;
 }
 

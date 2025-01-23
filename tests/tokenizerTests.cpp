@@ -204,7 +204,7 @@ u8 checkLoopFile()
   // - - - Write multiple test lines to the file
   expectToBeTrue(writeFileLine(&writeFile, "for(Plag var = 1)"));  // Line to test FOR loop
   expectToBeTrue(writeFileLine(&writeFile, "while(real)")); // Line with WHILE loop
-  expectToBeTrue(writeFileLine(&writeFile, "if(real)")); // Line with IF statement 
+  expectToBeTrue(writeFileLine(&writeFile, "agar(real)")); // Line with IF statement 
   expectToBeTrue(writeFileLine(&writeFile, "yafir(cap)")); // Line with ELIF statement
   // - - - Close the file after writing
   closeFile(&writeFile);
@@ -232,7 +232,7 @@ u8 checkLoopFile()
       Token{")", CLOSE_PARANTHESIS},
     }, 
     {
-      Token{"if", IF},
+      Token{"agar", IF},
       Token{"(", OPEN_PARANTHESIS},
       Token{"real", TRUE},
       Token{")", CLOSE_PARANTHESIS},

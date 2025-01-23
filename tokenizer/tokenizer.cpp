@@ -79,7 +79,7 @@ int readIdentifier(const char* TOKEN, int START)
 // - - - Look up table for Keywords - - -
 std::unordered_map<std::string, TokenType> keywords = 
 {
-  {"if", IF},
+  {"agar", IF},
   {"yafir", ELIF},
   {"ya", ELSE},
   {"for", FOR},
@@ -381,9 +381,5 @@ void printToken(Token* TOKEN)
 void printTokens(std::vector<Token>* TOKENS)
 {
   FORGE_ASSERT_MESSAGE(TOKENS != NULL, "Cannot print a NULL vector of tokens");
-
-  for (Token token : *TOKENS)
-  {
-    printToken(&token);
-  }
+  for (Token token : *TOKENS)  printToken(&token);
 }

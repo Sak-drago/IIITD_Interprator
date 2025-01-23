@@ -136,20 +136,9 @@ bool initIfNode(Node* NODE, Node* CONDITION, Block* CONSEQUENCE, Block* ALTERNAT
 {
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST If Node");
 
-  if (CONDITION == NULL)
-  {
-    FORGE_LOG_WARNING("The Node passed as CONDITION for AST If Node intiailization is null");
-  }
-
-  if (CONSEQUENCE == NULL)
-  {
-    FORGE_LOG_WARNING("The Node passed as CONSEQUENCE for AST If Node intiailization is null");
-  }
-
-  if (ALTERNATIVE == NULL)
-  {
-    FORGE_LOG_WARNING("The Node passed as ALTERNATIVE for AST If Node intiailization is null");
-  }
+  if (CONDITION   == NULL)  FORGE_LOG_ERROR   ("If Node Condition is NULL");
+  if (CONSEQUENCE == NULL)  FORGE_LOG_ERROR   ("If Node Consequence is NULL");
+  if (ALTERNATIVE == NULL)  FORGE_LOG_WARNING ("If Node's ELSE is NULL");
 
   NODE->type                          = NODE_TYPE_IF;
   NODE->context.ifContext.condition   = CONDITION;

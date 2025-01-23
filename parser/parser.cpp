@@ -87,6 +87,7 @@ int curPrecedence()
 
   return LOWEST;
 }
+
 // - - - Checks what Precedence does the next token have
 int peekPrecedence()
 {
@@ -195,7 +196,6 @@ Node* parsePrefixExpression(void* ARG)
     exit(1);
   }
   std::string operatorType = token.literal;
-  //tokenIndex++;
 
   // - - - TODO: @Asher: Only supports "!" operator for now. Add support for "-" operator.
   Node* right = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
@@ -287,35 +287,27 @@ Node* parseGroupedExpress(void* arg)
 // - - - TODO: @Asher: Add ELIF support
 Node* parseIfExpression(void* arg)
 {
-  Token token = input->at(tokenIndex);
-  if (!match(IF)) raiseSynaxError(IF);
+  // - - - match if and open parenthesis. Close is managed by parseEXpression
+  if (!match(IF))               raiseSynaxError(IF);
+  if (!match(OPEN_PARANTHESIS)) raiseSynaxError(OPEN_PARANTHESIS);
 
-  if(!match(OPEN_PARANTHESIS)) raiseSynaxError(OPEN_PARANTHESIS);
+  // - - - get the condition
+  Node* condition               = parseExpression(Precedence::LOWEST);
 
-  Node* condition = nullptr;
-  condition = parseExpression(Precedence::LOWEST);
+  // - - - get the body of the if statement in braces
+  if (!match(OPEN_BRACE))       raiseSynaxError(OPEN_BRACE);
+  Block* consequence            = parseBlockStatement();
+
+  // - - - check if we have an else condition
   tokenIndex++;
-  
-  // - - - Skipping over the close paranthesis
-  if(match(CLOSE_PARANTHESIS)){}
-
-
-  tokenIndex--;
-  if(!match(OPEN_BRACE))
-  {
-    FORGE_LOG_ERROR("Syntax error in If statement");
-    exit(1);
-  }
-
-  Block* consequence = nullptr;
-  consequence = parseBlockStatement();
-  tokenIndex++;
-  Block* alternative = nullptr;
+  Block* alternative            = nullptr;
   if (tokenIndex < input->size() && match(ELSE))
   {
-    alternative = parseBlockStatement();
+    if (!match(OPEN_BRACE))     raiseSynaxError(OPEN_BRACE);
+    alternative                 = parseBlockStatement();
   }
 
+  // - - - make the if node
   initIfNode((Node*)arg, condition, consequence, alternative);
   return (Node*)arg;
 }
