@@ -53,6 +53,7 @@ u8 checkTokenizeFile()
 
   // - - - Tokenize the file
   std::vector<std::vector<Token>> tokenizedLines = tokenizeFile("testFile.txt");
+    system("rm testFile.txt");
 
   // - - - Expected tokens for each line
   std::vector<std::vector<Token>> expectedTokenizedLines = 
@@ -108,6 +109,7 @@ u8 checkTokenizeFile()
       Token{"=", ASSIGN},
       Token{"real",TRUE},
     }
+
   };
 
   // - - - Validate the number of lines tokenized
@@ -205,12 +207,14 @@ u8 checkLoopFile()
   expectToBeTrue(writeFileLine(&writeFile, "for(Plag var = 1)"));  // Line to test FOR loop
   expectToBeTrue(writeFileLine(&writeFile, "while(real)")); // Line with WHILE loop
   expectToBeTrue(writeFileLine(&writeFile, "agar(real)")); // Line with IF statement 
-  expectToBeTrue(writeFileLine(&writeFile, "yafir(cap)")); // Line with ELIF statement
+  expectToBeTrue(writeFileLine(&writeFile, "ya(cap)")); // Line with ELIF statement
   // - - - Close the file after writing
   closeFile(&writeFile);
 
   // - - - Tokenize the file
   std::vector<std::vector<Token>> tokenizedLines = tokenizeFile("testFile2.txt");
+  system("rm testFile2.txt");
+  FORGE_LOG_TRACE("Deleted the file");
 
   // - - - Expected tokens for each line
   std::vector<std::vector<Token>> expectedTokenizedLines = 
@@ -239,7 +243,7 @@ u8 checkLoopFile()
     }, 
 
     {
-      Token{"yafir", ELIF},
+      Token{"ya", ELSE},
       Token{"(", OPEN_PARANTHESIS},
       Token{"cap", FALSE},
       Token{")", CLOSE_PARANTHESIS},

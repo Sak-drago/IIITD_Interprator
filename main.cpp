@@ -13,6 +13,9 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
     FORGE_LOG_INFO("Usage : -");
     FORGE_LOG_DEBUG("program --f <FILE_PATH> : Tokenize the file at <FILE_PATH>");
     FORGE_LOG_DEBUG("program --s <SRC_CODE>  : Tokenize the <SRC_CODE>");
+    FORGE_LOG_DEBUG("program --p <SRC_CODE>  : Tokenize and Parse the <SRC_CODE>");
+    FORGE_LOG_DEBUG("program --p <SRC_CODE>  : Tokenize and Parse the <SRC_CODE>");
+    FORGE_LOG_DEBUG("program --r <SRC_CODE>  : Run the <SRC_CODE>");
     FORGE_LOG_DEBUG("program --h             : You are already here");
     FORGE_LOG_DEBUG("program <INPUT>         : Let the program decide whether your input is a file or SRC_CODE");
     return 0;
@@ -38,8 +41,17 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
       return 0;
     }
 
-    // - - - tokenize a line
+    // - - - tokenize a line 
     if (strcmp(ARGUMENT_VECTOR[1], "--s") == 0)
+    {
+      std::vector<Token> tokens = tokenize(ARGUMENT_VECTOR[2]);
+      FORGE_LOG_INFO("%d Tokens generated out of source code : %s", tokens.size(), ARGUMENT_VECTOR[2]);
+      printTokens(&tokens);
+      return 0;
+    }
+
+    // - - - tokenize and parse a line
+    if (strcmp(ARGUMENT_VECTOR[1], "--p") == 0)
     {
       std::vector<Token> tokens = tokenize(ARGUMENT_VECTOR[2]);
       FORGE_LOG_INFO("%d Tokens generated out of source code : %s", tokens.size(), ARGUMENT_VECTOR[2]);
@@ -52,17 +64,6 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
 
       for (Node* node : program.statements)
       {
-        FORGE_LOG_DEBUG(getNodeString(node).c_str());
-      }
-
-      getchar();
-      getchar();
-
-      FORGE_LOG_FATAL("Printing all nodes");
-
-      for (u64 i = 0; i < program.allocator.allocated; i += sizeof(Node))
-      {
-        Node* node = (Node*)((char*)program.allocator.memory + i);
         FORGE_LOG_DEBUG(getNodeString(node).c_str());
       }
 
