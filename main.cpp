@@ -1,5 +1,8 @@
+#include "include/ast.h"
 #include "include/tokenizer.h"
+#include "include/parser.h"
 #include "library/include/filesystem.h"
+#include "library/include/linearAlloc.h"
 #include "library/include/logger.h"
 
 int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[]) 
@@ -41,6 +44,29 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
       std::vector<Token> tokens = tokenize(ARGUMENT_VECTOR[2]);
       FORGE_LOG_INFO("%d Tokens generated out of source code : %s", tokens.size(), ARGUMENT_VECTOR[2]);
       printTokens(&tokens);
+
+      Program program;
+      // - - - 1 MB assigned for now
+      createLinearAllocator(1024 * 1024, 0, NULL, &program.allocator);
+      produceAST(&tokens, &program);
+
+      for (Node* node : program.statements)
+      {
+        FORGE_LOG_DEBUG(getNodeString(node).c_str());
+      }
+
+      getchar();
+      getchar();
+
+      FORGE_LOG_FATAL("Printing all nodes");
+
+      for (u64 i = 0; i < program.allocator.allocated; i += sizeof(Node))
+      {
+        Node* node = (Node*)((char*)program.allocator.memory + i);
+        FORGE_LOG_DEBUG(getNodeString(node).c_str());
+      }
+
+      destroyLinearAllocator(&program.allocator);
       return 0;
     }
   }

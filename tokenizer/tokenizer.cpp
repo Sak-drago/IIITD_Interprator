@@ -32,20 +32,28 @@ const std::string tokenNames[TOKEN_TYPES_COUNT] =
   "ASSIGN",
   "OPEN_PARANTHESIS",
   "CLOSE_PARANTHESIS",
+  "OPEN_BRACE",
+  "CLOSE_BRACE",
   "BINARY_OPERATOR",
   "GREATER",
   "LESSER",
   "GREATER_EQUAL",
   "LESSER_EQUAL",
+  "ADD",
+  "SUB",
+  "MUL",
+  "DIV",
   "PLAG",
   "DAC",
   "TRUE",
   "FALSE",
   "IF",
-  "ELIF",
   "ELSE",
   "FOR",
   "WHILE",
+  "RETURN",
+  "FUNCTION",
+  "COMMA",
 };
 
 const std::string getTokenTypeString(TokenType TYPE)
@@ -70,15 +78,16 @@ int readIdentifier(const char* TOKEN, int START)
 // - - - Look up table for Keywords - - -
 std::unordered_map<std::string, TokenType> keywords = 
 {
+  {"agar", IF},
+  {"ya", ELSE},
+  {"for", FOR},
+  {"while", WHILE},
+  {"return", RETURN},  
   {"Plag", PLAG},
   {"dac",  DAC},
   {"real", TRUE},
   {"cap", FALSE},
-  {"if", IF},
-  {"yafir", ELIF},
-  {"ya", ELSE},
-  {"for", FOR},
-  {"while", WHILE},
+  {"Fn", FUNCTION},
 };
 
 TokenType lookUpKeywords(std::string &iden)
@@ -100,7 +109,7 @@ std::vector<Token> tokenize(const char* SRC_CODE)
   std::vector<Token> tokens;
   // - - - a copy because we dont want to modify the original string
   const char*        src                   = SRC_CODE;
-  int                start                 = 0;
+//int                start                 = 0;
   int                current               = 0;
 
   while (src[current] != '\0' && src[current] != '\n')
@@ -133,6 +142,36 @@ std::vector<Token> tokenize(const char* SRC_CODE)
         current++;
         break;
 
+      // - - - OPEN_BRACE
+      case '{':
+        tokens.push_back(makeToken(
+              SRC_CODE,     
+              current, 
+              current + 1, 
+              OPEN_BRACE));
+        current++;
+        break;
+      
+      // - - - CLOSE_BRACE
+      case '}':
+        tokens.push_back(makeToken(
+              SRC_CODE,     
+              current, 
+              current + 1, 
+              CLOSE_BRACE));
+        current++;
+        break;
+      
+      // - - - COMMA
+      case ',':
+        tokens.push_back(makeToken(
+              SRC_CODE,     
+              current, 
+              current + 1, 
+              COMMA));
+        current++;
+        break;
+        
       // - - - ASSIGN OR EQUALS
       case '=':
         switch(src[current + 1])
@@ -246,7 +285,6 @@ std::vector<Token> tokenize(const char* SRC_CODE)
         current++;
         break;
 
-      // - - - handle multi character token later
       default : 
         if(std::isalpha(currentChar,alphaChar)){
           int updatePosition = readIdentifier(SRC_CODE, current);
@@ -341,9 +379,5 @@ void printToken(Token* TOKEN)
 void printTokens(std::vector<Token>* TOKENS)
 {
   FORGE_ASSERT_MESSAGE(TOKENS != NULL, "Cannot print a NULL vector of tokens");
-
-  for (Token token : *TOKENS)
-  {
-    printToken(&token);
-  }
+  for (Token token : *TOKENS)  printToken(&token);
 }

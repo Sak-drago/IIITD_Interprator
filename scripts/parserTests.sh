@@ -1,4 +1,4 @@
 cd ..
 make
-./bin/main "$@"
+./bin/parserTests
 cd scripts
