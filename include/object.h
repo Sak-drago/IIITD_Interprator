@@ -1,7 +1,7 @@
 #pragma once 
 #include "parser.h"
 
-typedef enum ObjectType
+typedef enum DataType
 {
   Int_8,
   Int_16,
@@ -27,12 +27,12 @@ typedef enum ObjectType
 
   ERROR,
   ObjectTypeCount
-} ObjectType;
+} DataType;
 
-typedef struct Object 
+typedef struct Data
 {
-  ObjectType type;
-  void*      value;
-} Object;
+  DataType type;
+  void*    value;
+} Data;
 
-FORGE_API Object evaluate(Node* NODE);
+FORGE_API Data evaluate(Node* NODE);

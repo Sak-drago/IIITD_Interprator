@@ -1,6 +1,7 @@
 #pragma once
 #include "../defines.h"
 #include "../include/tokens.h"
+#include <string>
 #include <vector>
 
 // - - - Binary AST Node specific
@@ -48,7 +49,7 @@ typedef union NodeContext
 {
   struct 
   {
-    i64               value;   
+    const char*       value;   
   } numberContext;
 
   struct 
@@ -118,7 +119,7 @@ typedef struct Block
 // - - - AST Node related Functions - - - 
 
 // - - - initialize nodes of each type
-FORGE_API bool        initNumberNode          (Node* NODE, i64 VALUE);
+FORGE_API bool        initNumberNode          (Node* NODE, std::string& NUMBER);
 
 FORGE_API bool        initBoolNode            (Node* NODE, bool VALUE);
 

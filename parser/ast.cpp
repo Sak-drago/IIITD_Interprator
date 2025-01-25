@@ -17,12 +17,12 @@ std::string getNodeID(Node* node) {
 // - - - Initialize all node types - - -
 
 // - - - number nodes
-bool initNumberNode(Node* NODE, i64 VALUE)
+bool initNumberNode(Node* NODE, std::string& NUMBER)
 {
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST Number Node");
   
   NODE->type                        = NODE_TYPE_NUMBER;
-  NODE->context.numberContext.value = VALUE;
+  NODE->context.numberContext.value = strdup(NUMBER.c_str());
 
   return true;
 }
@@ -239,7 +239,7 @@ std::string getNodeString(Node* NODE, i8 INDENTATION_LEVEL)
     switch (NODE->type)
     {
         case NODE_TYPE_NUMBER:
-            retVal += "\tValue : "                        + std::to_string(NODE->context.numberContext.value);
+            retVal += "\tValue : "                        + std::string(NODE->context.numberContext.value);
             break;
 
         case NODE_TYPE_VARIABLE:

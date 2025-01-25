@@ -247,8 +247,8 @@ Node* parseInteger(void* ARG)
   FORGE_ASSERT_MESSAGE(ARG != NULL, "Cannot initialize a null AST number node");
 
   Token token = input->at(tokenIndex);
-  initNumberNode((Node*) ARG, std::stoi(token.literal));
-
+  std::string number = token.literal;
+  initNumberNode((Node*) ARG, number);
 
   if (tokenIndex + 1 < input->size() && input->at(tokenIndex + 1).type == CLOSE_PARANTHESIS) tokenIndex++;
   return (Node*)ARG;
