@@ -1,6 +1,9 @@
 #include "include/ast.h"
+#include "include/data.h"
+#include "include/program.h"
 #include "include/tokenizer.h"
 #include "include/parser.h"
+#include "include/data.h"
 #include "library/include/filesystem.h"
 #include "library/include/linearAlloc.h"
 #include "library/include/logger.h"
@@ -68,6 +71,37 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
       }
 
       destroyLinearAllocator(&program.allocator);
+      return 0;
+    }
+    
+    // - - - tokenize and parse and run a line
+    if (strcmp(ARGUMENT_VECTOR[1], "--r") == 0)
+    {
+      std::vector<Token> tokens = tokenize(ARGUMENT_VECTOR[2]);
+      FORGE_LOG_INFO("%d Tokens generated out of source code : %s", tokens.size(), ARGUMENT_VECTOR[2]);
+      printTokens(&tokens);
+
+      // - - - 1 MB assigned for now
+      createLinearAllocator(1024 * 1024, 0, NULL, &runtime.allocator);
+      createLinearAllocator(1024 * 1024, 0, NULL, &runtime.global.memory);
+      createLinearAllocator(1024 * 1024, 0, NULL, &runtime.stack.memory);
+      produceAST(&tokens, &runtime);
+
+      for (Node* node : runtime.statements)
+      {
+        FORGE_LOG_DEBUG(getNodeString(node).c_str());
+      }
+
+      FORGE_LOG_INFO("\nBeginning Evaluation");
+      for (Node* node : runtime.statements)
+      {
+        Data data = evaluate(node);
+        FORGE_LOG_DEBUG(getDataStr(&data).c_str());
+      }
+
+      destroyLinearAllocator(&runtime.allocator);
+      destroyLinearAllocator(&runtime.global.memory);
+      destroyLinearAllocator(&runtime.stack.memory);
       return 0;
     }
   }

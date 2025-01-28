@@ -31,8 +31,13 @@ typedef enum DataType
 
 typedef struct Data
 {
-  DataType type;
-  void*    value;
+  const DataType type;
+  const void*    value;
 } Data;
 
-FORGE_API Data evaluate(Node* NODE);
+
+FORGE_API Data        evaluate          (Node* NODE);
+
+FORGE_API std::string getDataTypeStr    (const DataType* DATA_TYPE);
+
+FORGE_API std::string getDataStr        (const Data* DATA);
