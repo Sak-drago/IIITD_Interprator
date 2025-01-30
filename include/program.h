@@ -17,6 +17,7 @@ typedef struct Program
   LinearAllocator     allocator;
   Environment         global;
   Environment         stack;
+  Environment*        currentEnv = &global;
 } Program;
 
 extern Program runtime;

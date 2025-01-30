@@ -1,9 +1,8 @@
 #include "include/ast.h"
-#include "include/data.h"
+#include "include/evaluator.h"
 #include "include/program.h"
 #include "include/tokenizer.h"
 #include "include/parser.h"
-#include "include/data.h"
 #include "library/include/filesystem.h"
 #include "library/include/linearAlloc.h"
 #include "library/include/logger.h"
@@ -98,6 +97,7 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
         Data data = evaluate(node);
         FORGE_LOG_DEBUG(getDataStr(&data).c_str());
       }
+      FORGE_LOG_INFO("size of token : %d", sizeof(Token));
 
       destroyLinearAllocator(&runtime.allocator);
       destroyLinearAllocator(&runtime.global.memory);
