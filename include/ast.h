@@ -93,7 +93,6 @@ typedef union NodeContext
     struct Block*     alternative;
   } ifContext;
   
-  
   struct
   {
     std::vector<FunctionParameter>  parameters;

@@ -57,10 +57,11 @@ std::string getDataStr        (const Data* DATA)
   return stringBuilder.str();
 }
 
-const i8 getDataTypeSize(const DataType DATA_TYPE) 
+i8 getDataTypeSize(const DataType DATA_TYPE) 
 {
   switch(DATA_TYPE)
   {
+    case Bool     :
     case Int_8    :
     case UInt_8   : return 1;
 

@@ -98,8 +98,7 @@ FORGE_INLINE void assign(const char* NUMBER_STRING, DataType TYPE, void* MEMORY)
       *reinterpret_cast<f64*>(MEMORY) = static_cast<f64>(std::stod(NUMBER_STRING)); 
       break;
 
-    default :
-      FORGE_ASSERT_MESSAGE(true, "Panic Assignmnet Failure");
+    default : raiseException("Number Type Evaluation Assignment Failed");
   }
 }
 

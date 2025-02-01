@@ -72,4 +72,4 @@ FORGE_API Data          evaluateIfNode          (const Node* IF_NODE);
 FORGE_API Data          evaluateFunctionNode    (const Node* FUNCTION_NODE);
 
 // WARN:- - - @brief : not fully fleshed out yet
-FORGE_API void          raiseException();
+FORGE_API void          raiseException(const char* EXCEPTION);

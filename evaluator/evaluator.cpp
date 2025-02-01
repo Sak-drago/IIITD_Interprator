@@ -12,12 +12,13 @@ Data evaluate(const Node* NODE)
   {
     case NODE_TYPE_NUMBER                   : return evaluateNumberNode(NODE);
     case NODE_TYPE_BINARY_OPERATOR          : return evaluateBinaryNode(NODE);
+    case NODE_TYPE_BOOLEAN                  : return evaluateBooleanNode(NODE);
   }
 }
 
-void raiseException()
+void raiseException(const char* EXCEPTION)
 {
-  FORGE_LOG_ERROR("Exception raised");
+  FORGE_LOG_ERROR("Exception raised:\t%s", EXCEPTION);
 }
 
 
