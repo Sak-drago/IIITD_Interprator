@@ -53,6 +53,7 @@ FORGE_INLINE DataType getResultingDataType (DataType TYPE_1, DataType TYPE_2, Bi
     case COMPARISON_OPERATOR_GREATER        :
     case COMPARISON_OPERATOR_LESSER_EQUAL   :
     case COMPARISON_OPERATOR_GREATER_EQUAL  : return Bool;
+    case BINARY_OPERATOR_REMAINDER : return Int_32;
     default :
       switch (TYPE_1)
       {
@@ -138,6 +139,13 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
       *((ResultType*)memory)  = (LVAL OP RVAL); \
       break; \
     }
+  
+  #define HANDLE_REMAINDER_(OPCODE, LTYPE, RTYPE, LVAL, RVAL, OP) \
+    case OPCODE: \
+    { \
+      *((i32*)memory)  = ((i32)LVAL OP (i32)RVAL); \
+      break; \
+    }
 
   // - - - handle comparison operations 
   #define HANDLE_COMPARISON_OP(OPCODE, LTYPE, RTYPE, LVAL, RVAL, OP) \
@@ -145,11 +153,9 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
 
   // - - - handle all operations
   #define HANDLE_OP(LTYPE, RTYPE) \
-    if (std::is_floating_point<LTYPE>::value) { \
-      raiseException("Wow"); \
-    }\
     switch (op) \
     { \
+      HANDLE_REMAINDER_(BINARY_OPERATOR_REMAINDER, LTYPE, RTYPE, lVal, rVal, %) \
       HANDLE_ARITHMETIC_OP(BINARY_OPERATOR_ADDITION,           LTYPE, RTYPE, lVal, rVal,  +) \
       HANDLE_ARITHMETIC_OP(BINARY_OPERATOR_SUBTRACTION,        LTYPE, RTYPE, lVal, rVal,  -) \
       HANDLE_ARITHMETIC_OP(BINARY_OPERATOR_MULTIPLICATION,     LTYPE, RTYPE, lVal, rVal,  *) \
@@ -160,7 +166,7 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
       HANDLE_COMPARISON_OP(COMPARISON_OPERATOR_GREATER_EQUAL,  LTYPE, RTYPE, lVal, rVal, >=) \
       HANDLE_COMPARISON_OP(COMPARISON_OPERATOR_LESSER_EQUAL,   LTYPE, RTYPE, lVal, rVal, <=) \
       default: raiseException("Unsupported binary operation between " #LTYPE " and " #RTYPE);\
-    } 
+    }
 
   // - - - handle r type switches 
   #define HANDLE_BINARY_OP(LTYPE) \
