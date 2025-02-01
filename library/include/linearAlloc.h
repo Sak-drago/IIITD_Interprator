@@ -19,7 +19,9 @@ FORGE_API void  destroyLinearAllocator(LinearAllocator* ALLOCATOR);
 
 FORGE_API void* linearAllocatorAllocate(LinearAllocator* ALLOCATOR,     unsigned long long SIZE);
 
-FORGE_API void  linearAllocFree(LinearAllocator* ALLOCATOR); 
+FORGE_API bool  linearAllocatorRemove(LinearAllocator* ALLOCATOR,     unsigned long long SIZE);
+
+FORGE_API void  linearAllocZero(LinearAllocator* ALLOCATOR); 
 
 FORGE_API void  setLinearAllocatorResizeFactor(LinearAllocator* ALLOCATOR, float RESIZE_FACTOR);
 

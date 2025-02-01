@@ -79,7 +79,37 @@ void* linearAllocatorAllocate(LinearAllocator* ALLOCATOR, unsigned long long SIZ
   return block;
 }
 
-void linearAllocFree(LinearAllocator* ALLOCATOR) 
+bool linearAllocatorRemove(LinearAllocator* ALLOCATOR, u64 SIZE)
+{
+  FORGE_ASSERT_MESSAGE(ALLOCATOR    != NULL, "Cannot initialize a NULL ALLOACTOR");
+  FORGE_ASSERT_MESSAGE(ALLOCATOR->memory,    "ALLOCATOR has no memory");
+
+  if (SIZE > ALLOCATOR->allocated) 
+  {
+
+    if (ALLOCATOR->resizeFactor != 0 && (ALLOCATOR->allocated - SIZE) <= ALLOCATOR->totalSize / 4)
+    {
+      FORGE_LOG_WARNING("LinearAllocator is resizing by a factor of %f to size %lldB", ALLOCATOR->resizeFactor, (u64)(ALLOCATOR->totalSize / ALLOCATOR->resizeFactor));
+      ALLOCATOR->memory = realloc(ALLOCATOR->memory, (u64) ALLOCATOR->totalSize / ALLOCATOR->resizeFactor);
+
+      FORGE_ASSERT_MESSAGE(ALLOCATOR->memory != NULL, "LinearAllocator failed to resize. All memory lost");
+      if (ALLOCATOR->memory == NULL)
+      {
+        FORGE_LOG_FATAL("LinearAllocator failed to ... Oh noes")
+      }
+    }
+    else 
+    {
+      FORGE_LOG_ERROR("LinearAllocator tried to remove %lluB, only %lluB remaining.", SIZE, ALLOCATOR->allocated);
+      return false;
+    }
+  }
+
+  ALLOCATOR->allocated -= SIZE;
+  return true;
+}
+
+void linearAllocZero(LinearAllocator* ALLOCATOR) 
 {
   FORGE_ASSERT_MESSAGE(ALLOCATOR    != NULL, "Cannot initialize a NULL ALLOACTOR");
   FORGE_ASSERT_MESSAGE(ALLOCATOR->memory,    "ALLOCATOR has no memory");
@@ -87,7 +117,7 @@ void linearAllocFree(LinearAllocator* ALLOCATOR)
   ALLOCATOR->allocated = 0;
   memset(ALLOCATOR->memory, 0, ALLOCATOR->totalSize);
 
-  FORGE_LOG_WARNING("ALLOCATOR has freed all the memory");
+  FORGE_LOG_WARNING("ALLOCATOR has zeroed out all the memory");
 }
 
 void setLinearAllocatorResizeFactor(LinearAllocator* ALLOCATOR, float RESIZE_FACTOR)

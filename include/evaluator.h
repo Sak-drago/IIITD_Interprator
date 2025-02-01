@@ -1,5 +1,4 @@
 #pragma once 
-
 #include "parser.h"
 #include "program.h"
 #include "../library/include/asserts.h"
@@ -55,7 +54,7 @@ FORGE_API std::string   getDataTypeStr          (const DataType DATA_TYPE);
 FORGE_API std::string   getDataStr              (const Data* DATA);
 
 // - - - @brief : returns how many bytes are needed to store the Data Type
-FORGE_API const i8      getDataTypeSize         (const DataType DATA_TYPE);
+FORGE_API i8            getDataTypeSize         (const DataType DATA_TYPE);
 
 // - - - @brief : construct Data out of the AST and raises Exceptions
 FORGE_API Data          evaluate                (const Node* NODE);

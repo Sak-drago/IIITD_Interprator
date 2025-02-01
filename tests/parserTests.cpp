@@ -41,7 +41,7 @@ void readyProgram()
     done = true;
     return;
   }
-  linearAllocFree(&program.allocator);    
+  linearAllocZero(&program.allocator);    
   program.statements.clear();  
 }
 
