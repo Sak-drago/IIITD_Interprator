@@ -1,5 +1,5 @@
 #include "../include/evaluator.h"
-#include <type_traits>
+#include <cmath>
 
 
 FORGE_INLINE bool areTypeCompatible(DataType TYPE_1, DataType TYPE_2)
@@ -52,8 +52,10 @@ FORGE_INLINE DataType getResultingDataType (DataType TYPE_1, DataType TYPE_2, Bi
     case COMPARISON_OPERATOR_LESSER         :
     case COMPARISON_OPERATOR_GREATER        :
     case COMPARISON_OPERATOR_LESSER_EQUAL   :
+    case COMPARISON_OPERATOR_NOT_EQUAL      :
     case COMPARISON_OPERATOR_GREATER_EQUAL  : return Bool;
-    case BINARY_OPERATOR_REMAINDER : return Int_32;
+    case BINARY_OPERATOR_REMAINDER          : return Int_32;
+    case BINARY_OPERATOR_POWER              : return Float_64;
     default :
       switch (TYPE_1)
       {
@@ -140,10 +142,17 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
       break; \
     }
   
-  #define HANDLE_REMAINDER_(OPCODE, LTYPE, RTYPE, LVAL, RVAL, OP) \
+  #define HANDLE_REMAINDER(OPCODE, LTYPE, RTYPE, LVAL, RVAL, OP) \
     case OPCODE: \
     { \
       *((i32*)memory)  = ((i32)LVAL OP (i32)RVAL); \
+      break; \
+    }
+  
+  #define HANDLE_POW(OPCODE, LTYPE, RTYPE, LVAL, RVAL, OP) \
+    case OPCODE: \
+    { \
+      *((f64*)memory)  = std::pow(LVAL, RVAL); \
       break; \
     }
 
@@ -155,16 +164,18 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
   #define HANDLE_OP(LTYPE, RTYPE) \
     switch (op) \
     { \
-      HANDLE_REMAINDER_(BINARY_OPERATOR_REMAINDER, LTYPE, RTYPE, lVal, rVal, %) \
-      HANDLE_ARITHMETIC_OP(BINARY_OPERATOR_ADDITION,           LTYPE, RTYPE, lVal, rVal,  +) \
-      HANDLE_ARITHMETIC_OP(BINARY_OPERATOR_SUBTRACTION,        LTYPE, RTYPE, lVal, rVal,  -) \
-      HANDLE_ARITHMETIC_OP(BINARY_OPERATOR_MULTIPLICATION,     LTYPE, RTYPE, lVal, rVal,  *) \
-      HANDLE_ARITHMETIC_OP(BINARY_OPERATOR_DIVISION,           LTYPE, RTYPE, lVal, rVal,  /) \
-      HANDLE_COMPARISON_OP(COMPARISON_OPERATOR_GREATER,        LTYPE, RTYPE, lVal, rVal,  >) \
-      HANDLE_COMPARISON_OP(COMPARISON_OPERATOR_LESSER,         LTYPE, RTYPE, lVal, rVal,  <) \
-      HANDLE_COMPARISON_OP(COMPARISON_OPERATOR_EQUAL,          LTYPE, RTYPE, lVal, rVal, ==) \
-      HANDLE_COMPARISON_OP(COMPARISON_OPERATOR_GREATER_EQUAL,  LTYPE, RTYPE, lVal, rVal, >=) \
-      HANDLE_COMPARISON_OP(COMPARISON_OPERATOR_LESSER_EQUAL,   LTYPE, RTYPE, lVal, rVal, <=) \
+      HANDLE_REMAINDER    (BINARY_OPERATOR_REMAINDER,           LTYPE, RTYPE, lVal, rVal,  %) \
+      HANDLE_POW          (BINARY_OPERATOR_POWER,               LTYPE, RTYPE, lVal, rVal,  ^) \
+      HANDLE_ARITHMETIC_OP(BINARY_OPERATOR_ADDITION,            LTYPE, RTYPE, lVal, rVal,  +) \
+      HANDLE_ARITHMETIC_OP(BINARY_OPERATOR_SUBTRACTION,         LTYPE, RTYPE, lVal, rVal,  -) \
+      HANDLE_ARITHMETIC_OP(BINARY_OPERATOR_MULTIPLICATION,      LTYPE, RTYPE, lVal, rVal,  *) \
+      HANDLE_ARITHMETIC_OP(BINARY_OPERATOR_DIVISION,            LTYPE, RTYPE, lVal, rVal,  /) \
+      HANDLE_COMPARISON_OP(COMPARISON_OPERATOR_GREATER,         LTYPE, RTYPE, lVal, rVal,  <) \
+      HANDLE_COMPARISON_OP(COMPARISON_OPERATOR_LESSER,          LTYPE, RTYPE, lVal, rVal,  >) \
+      HANDLE_COMPARISON_OP(COMPARISON_OPERATOR_EQUAL,           LTYPE, RTYPE, lVal, rVal, ==) \
+      HANDLE_COMPARISON_OP(COMPARISON_OPERATOR_GREATER_EQUAL,   LTYPE, RTYPE, lVal, rVal, <=) \
+      HANDLE_COMPARISON_OP(COMPARISON_OPERATOR_LESSER_EQUAL,    LTYPE, RTYPE, lVal, rVal, >=) \
+      HANDLE_COMPARISON_OP(COMPARISON_OPERATOR_NOT_EQUAL,       LTYPE, RTYPE, lVal, rVal, !=) \
       default: raiseException("Unsupported binary operation between " #LTYPE " and " #RTYPE);\
     }
 

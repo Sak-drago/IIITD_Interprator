@@ -121,11 +121,12 @@ BinaryOperator getBinaryOperator(Token token)
   }
   else
   {
-    if(token.literal == "<") return COMPARISON_OPERATOR_GREATER;
-    if(token.literal == ">") return COMPARISON_OPERATOR_LESSER;
+    if(token.literal == "<")  return COMPARISON_OPERATOR_GREATER;
+    if(token.literal == ">")  return COMPARISON_OPERATOR_LESSER;
     if(token.literal == "==") return COMPARISON_OPERATOR_EQUAL;
     if(token.literal == "<=") return COMPARISON_OPERATOR_GREATER_EQUAL;
     if(token.literal == "=>") return COMPARISON_OPERATOR_LESSER_EQUAL;
+    if(token.literal == "!=") return COMPARISON_OPERATOR_NOT_EQUAL;
     FORGE_LOG_ERROR("How did you even get here Asher but for Comparison?");
   }
   FORGE_LOG_ERROR("How did you even get here Asher? Part 2, %s, %i", token.literal.c_str(), tokenIndex);
