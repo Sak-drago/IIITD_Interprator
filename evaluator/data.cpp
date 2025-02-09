@@ -1,10 +1,11 @@
 #include "../include/evaluator.h"
 #include "../library/include/asserts.h"
+#include "../include/program.h"
 #include <sstream>
 #include <string>
 
 
-std::string getDataTypeStr   (const DataType DATA_TYPE)
+std::string getDataTypeStr   (DataType DATA_TYPE)
 {
   FORGE_ASSERT_MESSAGE(DATA_TYPE < DATA_TYPE_COUNT, "Not identified as a valid data type");
   switch (DATA_TYPE)
@@ -51,7 +52,7 @@ std::string getDataStr        (const Data* DATA)
     case UInt_64  : stringBuilder << std::to_string((u64) *static_cast<const u64*>   (DATA->value));      break;
     case Float_32 : stringBuilder << std::to_string((f32) *static_cast<const f32*>   (DATA->value));      break;
     case Float_64 : stringBuilder << std::to_string((f64) *static_cast<const f64*>   (DATA->value));      break;
-    case Bool     : stringBuilder << ((bool) *static_cast<const bool*>(DATA->value) ? "Real" : "Cap");    break;
+    case Bool     : stringBuilder << ((bool) *static_cast<const bool*>(DATA->value) ? "real" : "cap");    break;
     case Null     : stringBuilder << "Null";                                         break;
   }
   stringBuilder << "\n}";
@@ -81,4 +82,19 @@ i8 getDataTypeSize(const DataType DATA_TYPE)
       raiseException("Not yet handled getting data size"); 
       return 0;
   }
+}
+
+bool isCurrentEnvLocal() 
+{ 
+  return runtime.currentEnv == &runtime.stack; 
+}
+
+bool isVariableInLocalEnv(std::string& VAR_NAME)
+{ 
+  return runtime.stack.pointers.find(VAR_NAME) != runtime.stack.pointers.end();
+}
+
+bool isVariableInGlobalEnv(std::string& VAR_NAME)
+{
+  return runtime.global.pointers.find(VAR_NAME) != runtime.global.pointers.end();
 }

@@ -120,6 +120,15 @@ void linearAllocZero(LinearAllocator* ALLOCATOR)
   FORGE_LOG_WARNING("ALLOCATOR has zeroed out all the memory");
 }
 
+void linearAllocReset(LinearAllocator* ALLOCATOR) 
+{
+  FORGE_ASSERT_MESSAGE(ALLOCATOR    != NULL, "Cannot initialize a NULL ALLOACTOR");
+  FORGE_ASSERT_MESSAGE(ALLOCATOR->memory,    "ALLOCATOR has no memory");
+
+  ALLOCATOR->allocated = 0;
+  FORGE_LOG_WARNING("ALLOCATOR has reset and will rewrite on its own memory");
+}
+
 void setLinearAllocatorResizeFactor(LinearAllocator* ALLOCATOR, float RESIZE_FACTOR)
 {
   FORGE_ASSERT_MESSAGE(ALLOCATOR      != NULL, "Cannot channge resize factor of a NULL allocator");

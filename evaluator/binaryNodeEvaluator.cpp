@@ -128,6 +128,7 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
   DataType        resultingType   = getResultingDataType(left.type, right.type, op);
   void*           memory          = linearAllocatorAllocate(&runtime.currentEnv->memory, getDataTypeSize(resultingType));
 
+
   // - - - Macros - - - 
 
   // - - - get the result type 
@@ -183,6 +184,7 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
   #define HANDLE_BINARY_OP(LTYPE) \
     switch (right.type) \
     { \
+      case Bool      :     {i8  rVal = *((i8*)right.value);  HANDLE_OP(LTYPE, i8);  break;} \
       case Int_8     :     {i8  rVal = *((i8*)right.value);  HANDLE_OP(LTYPE, i8);  break;} \
       case Int_16    :     {i16 rVal = *((i16*)right.value); HANDLE_OP(LTYPE, i16); break;} \
       case Int_32    :     {i32 rVal = *((i32*)right.value); HANDLE_OP(LTYPE, i32); break;} \
@@ -209,6 +211,7 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
           {
             bool rVal = *((bool*)right.value);
             HANDLE_OP(bool, bool);
+            break;
           }
         default : raiseException("Cannot perform any operation on a Bool and not Bool");  
       }

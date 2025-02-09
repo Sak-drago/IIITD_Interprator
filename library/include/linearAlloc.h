@@ -23,6 +23,8 @@ FORGE_API bool  linearAllocatorRemove(LinearAllocator* ALLOCATOR,     unsigned l
 
 FORGE_API void  linearAllocZero(LinearAllocator* ALLOCATOR); 
 
+FORGE_API void  linearAllocReset(LinearAllocator* ALLOCATOR); 
+
 FORGE_API void  setLinearAllocatorResizeFactor(LinearAllocator* ALLOCATOR, float RESIZE_FACTOR);
 
 #ifdef __cplusplus
