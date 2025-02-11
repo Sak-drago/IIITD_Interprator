@@ -17,6 +17,7 @@ Data evaluate(const Node* NODE)
     case NODE_TYPE_BOOLEAN                  : return evaluateBooleanNode    (NODE);
     case NODE_TYPE_ASSIGNMENT               : return evaluateAssignmentNode (NODE);
     case NODE_TYPE_VARIABLE                 : return evaluateVariableNode   (NODE);
+    case NODE_TYPE_IF                       : return evaluateIfNode         (NODE);
     default : raiseException(std::string("Type not handled yet : " + std::string(getNodeString((Node*) NODE).c_str())).c_str());
   }
 }
