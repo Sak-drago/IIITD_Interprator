@@ -1,8 +1,8 @@
 #pragma once
+#include "../../defines.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "../../defines.h"
 #define SKIP_TEST 2
 
 // - - - Test Function
@@ -19,7 +19,7 @@ typedef struct TestEntry
 
 // - - - User Interface - - - 
 
-FORGE_API void registerTest           (TEST, const char* DESCRIPTION);
+FORGE_API void registerTest           (TEST FUNCTION_TO_BE_TESTED, const char* DESCRIPTION);
 FORGE_API void runTests               ();
 
 #ifdef __cplusplus

@@ -82,6 +82,8 @@ FORGE_API void logOutput(LogLevel LEVEL, const char* MESSAGE, ...); // - - - Mul
 #else
   #define FORGE_LOG_TRACE(MESSAGE, ...)
 #endif
+  
+#define FORGE_LOG_CLEAR() printf("\033[H\033[J")
 
 #ifdef __cplusplus
 }

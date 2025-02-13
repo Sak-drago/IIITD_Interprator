@@ -20,6 +20,9 @@ u8 checkTokenizeCustomString()
 
   //- - - Check if the tokenization matches the expected tokens
   expectShouldBe(expectedTokens.size(), tokens.size());
+  // - - - Intentional segmentation fault
+  int* badPtr = nullptr;
+  *badPtr = BINARY_OPERATOR; // Dereferencing a null pointer
 
   // - - - Iterate through tokens and compare with expected
   for (u64 i = 0; i < tokens.size(); i++) 
@@ -38,7 +41,7 @@ u8 checkTokenizeFile()
 {
   // - - - Create and open a file for writing
   File writeFile;
-  expectToBeTrue(openFile("testFile.txt", FILE_MODE_WRITE, false, &writeFile));
+  expectToBeFalse(openFile("testFile.txt", FILE_MODE_WRITE, false, &writeFile));
 
   // - - - Write multiple test lines to the file
   expectToBeTrue(writeFileLine(&writeFile, "(+)=(-)"));
