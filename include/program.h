@@ -11,19 +11,9 @@
 // - - - @brief : All the possible types, we would support
 typedef enum DataType
 {
-  // - - - signed integers
-  Int_8,
-  Int_16,
-  Int_32,
-  Int_64,
-  // - - - floating point numbers
-  Float_32,
-  Float_64,
-  // - - - unsigned integers
-  UInt_8,
-  UInt_16,
-  UInt_32,
-  UInt_64,
+  // - - - Integer, Float
+  Integer,
+  Float,
   // - - - life permitting data types
   Bool,
   Null,

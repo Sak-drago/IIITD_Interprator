@@ -8,28 +8,12 @@ FORGE_INLINE bool areTypeCompatible(DataType TYPE_1, DataType TYPE_2)
   switch (TYPE_1)
   {
     // - - - numbers
-    case Int_8    :
-    case Int_16   :
-    case Int_32   :
-    case Int_64   :
-    case UInt_8   :
-    case UInt_16  :
-    case UInt_32  : 
-    case UInt_64  :
-    case Float_32 :
-    case Float_64 :
+    case Integer    :
+    case Float      :
       switch (TYPE_2)
       {
-        case Int_8    :
-        case Int_16   :
-        case Int_32   :
-        case Int_64   :
-        case UInt_8   :
-        case UInt_16  :
-        case UInt_32  : 
-        case UInt_64  :
-        case Float_32 :
-        case Float_64 : return true;
+        case Integer  :
+        case Float    : return true;
         default       : return false; 
       }
     case Bool:
@@ -54,56 +38,20 @@ FORGE_INLINE DataType getResultingDataType (DataType TYPE_1, DataType TYPE_2, Bi
     case COMPARISON_OPERATOR_LESSER_EQUAL   :
     case COMPARISON_OPERATOR_NOT_EQUAL      :
     case COMPARISON_OPERATOR_GREATER_EQUAL  : return Bool;
-    case BINARY_OPERATOR_REMAINDER          : return Int_32;
-    case BINARY_OPERATOR_POWER              : return Float_64;
+    case BINARY_OPERATOR_REMAINDER          : return Integer;
+    case BINARY_OPERATOR_POWER              : return Float;
     default :
       switch (TYPE_1)
       {
         case Bool     : return Bool; 
-        case Float_64 : return Float_64;
-        case Float_32 : 
+        case Float    : return Float;
+        case Integer  : 
           switch (TYPE_2)
           {
-            case Float_64 : return Float_64;
-            default       : return Float_32;
+            case Float    : return Float;
+            default       : return Integer;
           }
-        case Int_64   : 
-          switch (TYPE_2)
-          {
-            case Float_64 : return Float_64;
-            case Float_32 : return Float_32;
-            default       : return Int_64;
-          }
-        case UInt_64  : 
-          switch (TYPE_2)
-          {
-            case Float_64 : return Float_64;
-            case Float_32 : return Float_32;
-            case UInt_64  : return UInt_64;
-            default       : return Int_64;  
-          }
-        case UInt_32  : 
-        case UInt_16  : 
-        case UInt_8   :
-          switch (TYPE_2) 
-          {
-            case Float_64 : return Float_64;
-            case Float_32 : return Float_32;
-            case Int_64   : return Int_64;
-            case UInt_64  : return UInt_64;
-            case UInt_32  : 
-            case UInt_16  :
-            case UInt_8   : return UInt_32;
-            default       : return Int_32;  
-          }
-        default       : 
-          switch (TYPE_2) 
-          {
-            case Float_64 : return Float_64;
-            case Float_32 : return Float_32;
-            case Int_64   : return Int_64;
-            default       : return Int_32;  
-          }
+        default       : raiseException("Not handled yet");
       }
   }
 }
@@ -146,7 +94,7 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
   #define HANDLE_REMAINDER(OPCODE, LTYPE, RTYPE, LVAL, RVAL, OP) \
     case OPCODE: \
     { \
-      *((i32*)memory)  = ((i32)LVAL OP (i32)RVAL); \
+      *((i64*)memory)  = ((i64)LVAL OP (i64)RVAL); \
       break; \
     }
   
@@ -185,16 +133,8 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
     switch (right.type) \
     { \
       case Bool      :     {i8  rVal = *((i8*)right.value);  HANDLE_OP(LTYPE, i8);  break;} \
-      case Int_8     :     {i8  rVal = *((i8*)right.value);  HANDLE_OP(LTYPE, i8);  break;} \
-      case Int_16    :     {i16 rVal = *((i16*)right.value); HANDLE_OP(LTYPE, i16); break;} \
-      case Int_32    :     {i32 rVal = *((i32*)right.value); HANDLE_OP(LTYPE, i32); break;} \
-      case Int_64    :     {i64 rVal = *((i64*)right.value); HANDLE_OP(LTYPE, i64); break;} \
-      case UInt_8    :     {i8  rVal = *((i8*)right.value);  HANDLE_OP(LTYPE, u8);  break;} \
-      case UInt_16   :     {i16 rVal = *((i16*)right.value); HANDLE_OP(LTYPE, u16); break;} \
-      case UInt_32   :     {i32 rVal = *((i32*)right.value); HANDLE_OP(LTYPE, u32); break;} \
-      case UInt_64   :     {i64 rVal = *((i64*)right.value); HANDLE_OP(LTYPE, u64); break;} \
-      case Float_32  :     {f32 rVal = *((f32*)right.value); HANDLE_OP(LTYPE, f32); break;} \
-      case Float_64  :     {f64 rVal = *((f64*)right.value); HANDLE_OP(LTYPE, f64); break;} \
+      case Integer   :     {i64 rVal = *((i64*)right.value); HANDLE_OP(LTYPE, i64); break;} \
+      case Float     :     {f64 rVal = *((f64*)right.value); HANDLE_OP(LTYPE, f64); break;} \
       default: raiseException("Operation on " #LTYPE " and a non-number Node is undefined");\
     } \
     break;
@@ -217,16 +157,8 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
       }
       break;
     }
-    case Int_8    : { i8 lVal  = *((i8*)left.value);  HANDLE_BINARY_OP(i8) ; }
-    case Int_16   : { i16 lVal = *((i16*)left.value); HANDLE_BINARY_OP(i16); }
-    case Int_32   : { i32 lVal = *((i32*)left.value); HANDLE_BINARY_OP(i32); }
-    case Int_64   : { i64 lVal = *((i64*)left.value); HANDLE_BINARY_OP(i64); }
-    case UInt_8   : { u8 lVal  = *((u8*)left.value);  HANDLE_BINARY_OP(u8) ; }
-    case UInt_16  : { u16 lVal = *((u16*)left.value); HANDLE_BINARY_OP(u16); }
-    case UInt_32  : { u32 lVal = *((u32*)left.value); HANDLE_BINARY_OP(u32); }
-    case UInt_64  : { u64 lVal = *((u64*)left.value); HANDLE_BINARY_OP(u64); }
-    case Float_32 : { f32 lVal = *((f32*)left.value); HANDLE_BINARY_OP(f32); }
-    case Float_64 : { f64 lVal = *((f64*)left.value); HANDLE_BINARY_OP(f64); }
+    case Integer    : { i64 lVal  = *((i64*)left.value);  HANDLE_BINARY_OP(i64) ; break;}
+    case Float      : { f64 lVal  = *((f64*)left.value);  HANDLE_BINARY_OP(f64) ; break;}
     default : raiseException("Operation not defined between a number and a non-number");
   }
 

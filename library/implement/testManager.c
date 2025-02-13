@@ -146,13 +146,13 @@ void runTests()
   {
     snprintf(command, sizeof(command), "xdg-open %s &", logDir);
     system(command);
-    FORGE_LOG_INFO("Logs saved in the directory : %s, logDir");
+    FORGE_LOG_INFO("Logs saved in the directory : %s", logDir);
   }
   else if (choice != 'S' && choice != 's')
   {
     snprintf(command, sizeof(command), "rm -rf %s", logDir);
     system(command);
-    FORGE_LOG_INFO("Logs deleted.");
+    FORGE_LOG_WARNING("Logs deleted.");
   }
   else 
   {
