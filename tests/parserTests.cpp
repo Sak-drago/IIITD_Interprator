@@ -64,7 +64,8 @@ u8 runTestCase(std::string TEST_CASE, i32 EXPECTED_NODE_COUNT)
 u8 checkParserAssignment()
 {
   if (!runTestCase("Plag myVar = 2", 2))            return false;
-  if (!runTestCase("Plag myVar = (1+2)", 4))        return false;  
+  if (!runTestCase("Plag myVar1 = (1+2)", 4))        return false;  
+  FORGE_LOG_INFO("CHECKING VARIABLE NAME HERE");
   return true;
 }
 

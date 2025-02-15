@@ -67,7 +67,7 @@ std::locale alphaChar;
 
 int readIdentifier(const char* TOKEN, int START)
 {
-  while (std::isalpha(TOKEN[START], alphaChar)) 
+  while (std::isalpha(TOKEN[START], alphaChar) || std::isdigit(TOKEN[START])) 
   {
     START++; 
   }

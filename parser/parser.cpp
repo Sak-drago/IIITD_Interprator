@@ -166,9 +166,10 @@ Node* parseStatement()
   Token token = input->at(tokenIndex); 
   switch (token.type)
   {
-    case PLAG   :     return parseAssignmentExpression();
-    case RETURN :     return parseReturnStatement();
-    default     :     return parseExpression(LOWEST);
+    case PLAG      :     return parseAssignmentExpression();
+    case RETURN    :     return parseReturnStatement();
+    case IDENTIFIER:  return parseNormalAssignmentExpression();
+    default        :     return parseExpression(LOWEST);
   }
 }
 
@@ -372,8 +373,8 @@ Node* parseAssignmentExpression()
   if (!match(IDENTIFIER))       raiseSynaxError(IDENTIFIER);
  
   // - - - get the variable name
-  Token       var               = input->at(tokenIndex+1);        
-  std::string variableName      = input->at(tokenIndex).literal;
+  Token       var               = input->at(tokenIndex-1);
+  std::string variableName      = input->at(tokenIndex-1).literal;
 
   // - - - Match whether we have the synax: = <rhs>
   if (!match(ASSIGN))           raiseSynaxError(ASSIGN);
@@ -388,6 +389,30 @@ Node* parseAssignmentExpression()
   initAssignmentNode(assigmentNode, variableName, rhs);
   return assigmentNode;
 }
+
+Node* parseNormalAssignmentExpression()
+{
+  // - - - Match whether we have the syntax: <var>
+  if (!match(IDENTIFIER))       raiseSynaxError(IDENTIFIER);
+ 
+  // - - - get the variable name
+  Token       var               = input->at(tokenIndex-1);
+  std::string variableName      = input->at(tokenIndex-1).literal;
+
+  // - - - Match whether we have the synax: = <rhs>
+  if (!match(ASSIGN))           raiseSynaxError(ASSIGN);
+       match(OPEN_PARANTHESIS); // - - - handle the case of a paranthesis '('
+
+  // - - - construct the rhs
+  Node* rhs                     = parseExpression(Precedence::LOWEST); 
+  tokenIndex++;
+
+  // - - - allocate and return the assignmnet Node
+  Node* assigmentNode           = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  initAssignmentNode(assigmentNode, variableName, rhs);
+  return assigmentNode;
+}
+
 
 // - - - Functions
 std::vector<FunctionParameter> parseFunctionParams()
@@ -449,6 +474,7 @@ Node* parseFunctionLiteral(void* arg)
 
   Block* fnBody = parseBlockStatement();
   initFunctionNode((Node*)arg, fnLit, fnBody);
+  program->functionDefined.push_back((Node*)arg);
   return (Node*)arg;
 }
 
