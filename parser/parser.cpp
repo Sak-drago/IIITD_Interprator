@@ -164,11 +164,14 @@ Node* parseStatement()
   FORGE_ASSERT_MESSAGE(input != NULL, "Cannot begin parsing before recieveing input");
 
   Token token = input->at(tokenIndex); 
+  Token tokenPeak = input->at(tokenIndex+1);
   switch (token.type)
   {
     case PLAG      :     return parseAssignmentExpression();
     case RETURN    :     return parseReturnStatement();
-    case IDENTIFIER:  return parseNormalAssignmentExpression();
+    case IDENTIFIER:  
+      if(tokenPeak.type == ASSIGN) return parseNormalAssignmentExpression();
+      else return parseExpression(LOWEST);
     default        :     return parseExpression(LOWEST);
   }
 }
@@ -466,12 +469,21 @@ Node* parseFunctionLiteral(void* arg)
   
   fnLit = parseFunctionParams();
   
-    if(!match(OPEN_BRACE))
+  if(!match(OPEN_BRACE))
   {
+    Token peekToken = input->at(tokenIndex+1);
+    if(peekToken.type != CLOSE_BRACE)
+    {
+      Block* fnBody = nullptr;
+      initFunctionNode((Node*)arg, fnLit, fnBody);
+      program->functionDefined.push_back(((Node*)arg));
+      return (Node*) arg;
+    }
     FORGE_LOG_ERROR("Syntax Error: expected an Open Brace for expression in Function");  
     exit(1);
   }
 
+  if(program->functionDefined.find())
   Block* fnBody = parseBlockStatement();
   initFunctionNode((Node*)arg, fnLit, fnBody);
   program->functionDefined.push_back((Node*)arg);

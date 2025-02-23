@@ -1,6 +1,6 @@
 Plag x = 1
 x > 2
-Plag x = 3
+x = 3
 x > 2
 agar (x > 4) { Plag x = 1 } ya { Plag x = 2 }
 
