@@ -5,6 +5,7 @@
 #include "../include/tokenizer.h"
 #include "../include/tokens.h"
 #include <vector>
+#include <bits/algorithmfwd.h>
 
 static Program*              program      = NULL;
 static std::vector<Token>*   input        = NULL;
@@ -460,9 +461,36 @@ std::vector<FunctionParameter> parseFunctionParams()
 Node* parseFunctionLiteral(void* arg)
 {
   tokenIndex++;
+  for(auto itr = program->functionDefined.begin(); itr!= program->functionDefined.end(); itr++)
+  {
+    FORGE_LOG_DEBUG("CHECKING FOR FUNCTION DEFINED BEFORE %s with %s", (*itr)->context.functionContext.name, input->at(tokenIndex).literal.c_str());
+    if (strcmp((*itr)->context.functionContext.name, input->at(tokenIndex).literal.c_str()) == 0)
+    {
+      FORGE_LOG_DEBUG("FOUND FUCNTION DEFINED BEFORE");
+      while(input->at(tokenIndex).type != CLOSE_PARANTHESIS|| tokenIndex+1 >= input->size())
+      {
+        tokenIndex++;
+      }
+      tokenIndex++;
+      if(!match(OPEN_BRACE))
+      {
+        FORGE_LOG_ERROR("Syntax Error: Cannot redeclare twice");
+        exit(1);
+      }
+      (*itr)->context.functionContext.body = parseBlockStatement();
+      return (Node*)*itr;
+    }
+  }
+
+  if(!match(IDENTIFIER))
+  {
+    FORGE_LOG_ERROR("Syntax Error: expected an Identifier for Function");
+    exit(1);
+  }
+  std::string fnName = input->at(tokenIndex-1).literal;
   std::vector<FunctionParameter> fnLit;
   if(!match(OPEN_PARANTHESIS))
-  {
+  { 
     FORGE_LOG_ERROR("Syntax Error: expected an Open Bracket in Function")
     exit(1);
   }
@@ -471,21 +499,20 @@ Node* parseFunctionLiteral(void* arg)
   
   if(!match(OPEN_BRACE))
   {
-    Token peekToken = input->at(tokenIndex+1);
-    if(peekToken.type != CLOSE_BRACE)
+    if(tokenIndex+1 >= input->size() || input->at(tokenIndex+1).type != CLOSE_BRACE)
     {
       Block* fnBody = nullptr;
-      initFunctionNode((Node*)arg, fnLit, fnBody);
+      initFunctionNode((Node*)arg, fnName.c_str(), fnLit, fnBody);
       program->functionDefined.push_back(((Node*)arg));
+      tokenIndex--;
       return (Node*) arg;
     }
     FORGE_LOG_ERROR("Syntax Error: expected an Open Brace for expression in Function");  
     exit(1);
   }
 
-  if(program->functionDefined.find())
   Block* fnBody = parseBlockStatement();
-  initFunctionNode((Node*)arg, fnLit, fnBody);
+  initFunctionNode((Node*)arg, fnName.c_str(), fnLit, fnBody);
   program->functionDefined.push_back((Node*)arg);
   return (Node*)arg;
 }

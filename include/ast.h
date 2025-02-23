@@ -96,6 +96,7 @@ typedef union NodeContext
   
   struct
   {
+    const char*                     name;
     std::vector<FunctionParameter>  parameters;
     struct Block*                   body;
   } functionContext;
@@ -135,7 +136,7 @@ FORGE_API bool        initPrefixNode          (Node* NODE, const char* OPERATOR,
 
 FORGE_API bool        initIfNode              (Node* NODE, Node* CONDITION, Block* CONSEQUENCE, Block* ALTERNATIVE);
 
-FORGE_API bool        initFunctionNode        (Node* NODE, std::vector<FunctionParameter> PARAMETERS, Block* BODY);
+FORGE_API bool        initFunctionNode        (Node* NODE, const char* NAME ,std::vector<FunctionParameter> PARAMETERS, Block* BODY);
 
 // - - - print a node
 FORGE_API std::string getNodeTypeString       (NodeType TYPE);
