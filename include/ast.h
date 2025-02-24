@@ -1,6 +1,7 @@
 #pragma once
 #include "../defines.h"
 #include "../include/tokens.h"
+#include <string>
 #include <vector>
 
 // - - - Binary AST Node specific
@@ -15,6 +16,7 @@ typedef enum BinaryOperator
   COMPARISON_OPERATOR_GREATER,
   COMPARISON_OPERATOR_LESSER,
   COMPARISON_OPERATOR_EQUAL,
+  COMPARISON_OPERATOR_NOT_EQUAL,
   COMPARISON_OPERATOR_GREATER_EQUAL,
   COMPARISON_OPERATOR_LESSER_EQUAL,
 } BinaryOperator;
@@ -48,7 +50,7 @@ typedef union NodeContext
 {
   struct 
   {
-    i64               value;   
+    const char*       value;   
   } numberContext;
 
   struct 
@@ -92,9 +94,9 @@ typedef union NodeContext
     struct Block*     alternative;
   } ifContext;
   
-  
   struct
   {
+    const char*                     name;
     std::vector<FunctionParameter>  parameters;
     struct Block*                   body;
   } functionContext;
@@ -118,7 +120,7 @@ typedef struct Block
 // - - - AST Node related Functions - - - 
 
 // - - - initialize nodes of each type
-FORGE_API bool        initNumberNode          (Node* NODE, i64 VALUE);
+FORGE_API bool        initNumberNode          (Node* NODE, std::string& NUMBER);
 
 FORGE_API bool        initBoolNode            (Node* NODE, bool VALUE);
 
@@ -134,7 +136,7 @@ FORGE_API bool        initPrefixNode          (Node* NODE, const char* OPERATOR,
 
 FORGE_API bool        initIfNode              (Node* NODE, Node* CONDITION, Block* CONSEQUENCE, Block* ALTERNATIVE);
 
-FORGE_API bool        initFunctionNode        (Node* NODE, std::vector<FunctionParameter> PARAMETERS, Block* BODY);
+FORGE_API bool        initFunctionNode        (Node* NODE, const char* NAME ,std::vector<FunctionParameter> PARAMETERS, Block* BODY);
 
 // - - - print a node
 FORGE_API std::string getNodeTypeString       (NodeType TYPE);

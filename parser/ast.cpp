@@ -6,6 +6,7 @@
 
 // - - - Helper Functions - - -
 
+static int binaryNodecount = 0;
 // - - - Get the unique ID of a node
 std::string getNodeID(Node* node) {
     std::ostringstream oss;
@@ -17,12 +18,12 @@ std::string getNodeID(Node* node) {
 // - - - Initialize all node types - - -
 
 // - - - number nodes
-bool initNumberNode(Node* NODE, i64 VALUE)
+bool initNumberNode(Node* NODE, std::string& NUMBER)
 {
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST Number Node");
   
   NODE->type                        = NODE_TYPE_NUMBER;
-  NODE->context.numberContext.value = VALUE;
+  NODE->context.numberContext.value = strdup(NUMBER.c_str());
 
   return true;
 }
@@ -149,7 +150,7 @@ bool initIfNode(Node* NODE, Node* CONDITION, Block* CONSEQUENCE, Block* ALTERNAT
 }
 
 // - - - initialize an Fn node
-bool initFunctionNode(Node* NODE, std::vector<FunctionParameter> PARAMETERS, Block* BODY)
+bool initFunctionNode(Node* NODE, const char* NAME, std::vector<FunctionParameter> PARAMETERS, Block* BODY)
 {
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST Function Node");
 
@@ -159,6 +160,7 @@ bool initFunctionNode(Node* NODE, std::vector<FunctionParameter> PARAMETERS, Blo
   }
 
   NODE->type                          = NODE_TYPE_FUNCTION;
+  NODE->context.functionContext.name  = strdup(NAME);
   NODE->context.functionContext.parameters = PARAMETERS;
   NODE->context.functionContext.body       = BODY;
 
@@ -239,7 +241,7 @@ std::string getNodeString(Node* NODE, i8 INDENTATION_LEVEL)
     switch (NODE->type)
     {
         case NODE_TYPE_NUMBER:
-            retVal += "\tValue : "                        + std::to_string(NODE->context.numberContext.value);
+            retVal += "\tValue : "                        + std::string(NODE->context.numberContext.value);
             break;
 
         case NODE_TYPE_VARIABLE:
@@ -280,13 +282,17 @@ std::string getNodeString(Node* NODE, i8 INDENTATION_LEVEL)
             break;
 
         case NODE_TYPE_FUNCTION:
+            retVal += "\n\tName : "                         + std::string(NODE->context.functionContext.name);
             retVal += "\n\tParameters : ";
             for (u64 i = 0; i < NODE->context.functionContext.parameters.size(); i++)
             {
                 FORGE_LOG_DEBUG("Current parameter : %s", NODE->context.functionContext.parameters[i].name);
                 retVal += "\n\t\t" + std::string(NODE->context.functionContext.parameters[i].name);
             }
-            retVal += "\n\tBody : " + getBlockString(NODE->context.functionContext.body->statements);
+            if(NODE->context.functionContext.body!= nullptr) 
+            { 
+              retVal += "\n\tBody : " + getBlockString(NODE->context.functionContext.body->statements);
+            }
             break;
 
         default:

@@ -5,6 +5,7 @@
 #include "../include/tokenizer.h"
 #include "../include/tokens.h"
 #include <vector>
+#include <bits/algorithmfwd.h>
 
 static Program*              program      = NULL;
 static std::vector<Token>*   input        = NULL;
@@ -121,11 +122,12 @@ BinaryOperator getBinaryOperator(Token token)
   }
   else
   {
-    if(token.literal == "<") return COMPARISON_OPERATOR_GREATER;
-    if(token.literal == ">") return COMPARISON_OPERATOR_LESSER;
+    if(token.literal == "<")  return COMPARISON_OPERATOR_GREATER;
+    if(token.literal == ">")  return COMPARISON_OPERATOR_LESSER;
     if(token.literal == "==") return COMPARISON_OPERATOR_EQUAL;
     if(token.literal == "<=") return COMPARISON_OPERATOR_GREATER_EQUAL;
     if(token.literal == "=>") return COMPARISON_OPERATOR_LESSER_EQUAL;
+    if(token.literal == "!=") return COMPARISON_OPERATOR_NOT_EQUAL;
     FORGE_LOG_ERROR("How did you even get here Asher but for Comparison?");
   }
   FORGE_LOG_ERROR("How did you even get here Asher? Part 2, %s, %i", token.literal.c_str(), tokenIndex);
@@ -163,11 +165,15 @@ Node* parseStatement()
   FORGE_ASSERT_MESSAGE(input != NULL, "Cannot begin parsing before recieveing input");
 
   Token token = input->at(tokenIndex); 
+  Token tokenPeak = input->at(tokenIndex+1);
   switch (token.type)
   {
-    case PLAG   :     return parseAssignmentExpression();
-    case RETURN :     return parseReturnStatement();
-    default     :     return parseExpression(LOWEST);
+    case PLAG      :     return parseAssignmentExpression();
+    case RETURN    :     return parseReturnStatement();
+    case IDENTIFIER:  
+      if(tokenPeak.type == ASSIGN) return parseNormalAssignmentExpression();
+      else return parseExpression(LOWEST);
+    default        :     return parseExpression(LOWEST);
   }
 }
 
@@ -217,6 +223,8 @@ Node* parseInfixExpression(void* ARG)
   BinaryOperator opcode = getBinaryOperator(token);
   int precedence        = curPrecedence();
   tokenIndex++;
+  //-- If we have a '(' consume it
+  match(OPEN_PARANTHESIS);
 
   // - - - parse the expression on the right. If we have a ')' consume it
   Node* right           = parseExpression(precedence);
@@ -247,9 +255,8 @@ Node* parseInteger(void* ARG)
   FORGE_ASSERT_MESSAGE(ARG != NULL, "Cannot initialize a null AST number node");
 
   Token token = input->at(tokenIndex);
-  initNumberNode((Node*) ARG, std::stoi(token.literal));
-
-
+  std::string number = token.literal;
+  initNumberNode((Node*) ARG, number);
   if (tokenIndex + 1 < input->size() && input->at(tokenIndex + 1).type == CLOSE_PARANTHESIS) tokenIndex++;
   return (Node*)ARG;
 }
@@ -370,8 +377,8 @@ Node* parseAssignmentExpression()
   if (!match(IDENTIFIER))       raiseSynaxError(IDENTIFIER);
  
   // - - - get the variable name
-  Token       var               = input->at(tokenIndex+1);        
-  std::string variableName      = input->at(tokenIndex).literal;
+  Token       var               = input->at(tokenIndex-1);
+  std::string variableName      = input->at(tokenIndex-1).literal;
 
   // - - - Match whether we have the synax: = <rhs>
   if (!match(ASSIGN))           raiseSynaxError(ASSIGN);
@@ -386,6 +393,30 @@ Node* parseAssignmentExpression()
   initAssignmentNode(assigmentNode, variableName, rhs);
   return assigmentNode;
 }
+
+Node* parseNormalAssignmentExpression()
+{
+  // - - - Match whether we have the syntax: <var>
+  if (!match(IDENTIFIER))       raiseSynaxError(IDENTIFIER);
+ 
+  // - - - get the variable name
+  Token       var               = input->at(tokenIndex-1);
+  std::string variableName      = input->at(tokenIndex-1).literal;
+
+  // - - - Match whether we have the synax: = <rhs>
+  if (!match(ASSIGN))           raiseSynaxError(ASSIGN);
+       match(OPEN_PARANTHESIS); // - - - handle the case of a paranthesis '('
+
+  // - - - construct the rhs
+  Node* rhs                     = parseExpression(Precedence::LOWEST); 
+  tokenIndex++;
+
+  // - - - allocate and return the assignmnet Node
+  Node* assigmentNode           = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
+  initAssignmentNode(assigmentNode, variableName, rhs);
+  return assigmentNode;
+}
+
 
 // - - - Functions
 std::vector<FunctionParameter> parseFunctionParams()
@@ -430,23 +461,59 @@ std::vector<FunctionParameter> parseFunctionParams()
 Node* parseFunctionLiteral(void* arg)
 {
   tokenIndex++;
+  for(auto itr = program->functionDefined.begin(); itr!= program->functionDefined.end(); itr++)
+  {
+    FORGE_LOG_DEBUG("CHECKING FOR FUNCTION DEFINED BEFORE %s with %s", (*itr)->context.functionContext.name, input->at(tokenIndex).literal.c_str());
+    if (strcmp((*itr)->context.functionContext.name, input->at(tokenIndex).literal.c_str()) == 0)
+    {
+      FORGE_LOG_DEBUG("FOUND FUCNTION DEFINED BEFORE");
+      while(input->at(tokenIndex).type != CLOSE_PARANTHESIS|| tokenIndex+1 >= input->size())
+      {
+        tokenIndex++;
+      }
+      tokenIndex++;
+      if(!match(OPEN_BRACE))
+      {
+        FORGE_LOG_ERROR("Syntax Error: Cannot redeclare twice");
+        exit(1);
+      }
+      (*itr)->context.functionContext.body = parseBlockStatement();
+      return (Node*)*itr;
+    }
+  }
+
+  if(!match(IDENTIFIER))
+  {
+    FORGE_LOG_ERROR("Syntax Error: expected an Identifier for Function");
+    exit(1);
+  }
+  std::string fnName = input->at(tokenIndex-1).literal;
   std::vector<FunctionParameter> fnLit;
   if(!match(OPEN_PARANTHESIS))
-  {
+  { 
     FORGE_LOG_ERROR("Syntax Error: expected an Open Bracket in Function")
     exit(1);
   }
   
   fnLit = parseFunctionParams();
   
-    if(!match(OPEN_BRACE))
+  if(!match(OPEN_BRACE))
   {
+    if(tokenIndex+1 >= input->size() || input->at(tokenIndex+1).type != CLOSE_BRACE)
+    {
+      Block* fnBody = nullptr;
+      initFunctionNode((Node*)arg, fnName.c_str(), fnLit, fnBody);
+      program->functionDefined.push_back(((Node*)arg));
+      tokenIndex--;
+      return (Node*) arg;
+    }
     FORGE_LOG_ERROR("Syntax Error: expected an Open Brace for expression in Function");  
     exit(1);
   }
 
   Block* fnBody = parseBlockStatement();
-  initFunctionNode((Node*)arg, fnLit, fnBody);
+  initFunctionNode((Node*)arg, fnName.c_str(), fnLit, fnBody);
+  program->functionDefined.push_back((Node*)arg);
   return (Node*)arg;
 }
 
