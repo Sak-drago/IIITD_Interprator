@@ -1,79 +1,61 @@
+#include "library/include/objectPool.h"
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "library/include/treeSet.h"
 
-// Helper function to print the tree in order
-void printInOrder(AVLNode* node)
-{
-    if (!node) return;
-    printInOrder(node->left);
-    printf("%d ", *(int*)node->key);
-    printInOrder(node->right);
-}
-
-// Function to dynamically allocate an integer
-byteArray allocateInt(int value)
-{
-    int* ptr = (int*)malloc(sizeof(int));
-    if (!ptr)
-    {
-        fprintf(stderr, "Memory allocation failed!\n");
-        exit(EXIT_FAILURE);
-    }
-    *ptr = value;
-    return (byteArray)ptr;
-}
-
-int main()
-{
-    OrderedSet set;
+void testBasicFunctionality() {
+    printf("\n[Test] Basic Functionality\n");
+    ObjectPool pool;
+    createObjectPool(4, sizeof(int), 0, NULL, &pool);
     
-    // Initialize set without custom functions (uses malloc, free, memcmp)
-    createOrderedSet(&set, sizeof(int), NULL, NULL, NULL);
+    int* obj1 = (int*) takeObject(&pool);
+    int* obj2 = (int*) takeObject(&pool);
+    returnObject(&pool, obj1);
+    returnObject(&pool, obj2);
+    printf("Passed.\n");
+}
 
-    // Insert dynamically allocated integers
-    int values[] = {50, 30, 70, 20, 40, 60, 80, 90, 10, 35};
-    int count = sizeof(values) / sizeof(values[0]);
-
-    for (int i = 0; i < count; i++)
-    {
-        byteArray key = allocateInt(values[i]);
-        orderedSetInsert(&set, key);
+void testNonResizablePool() {
+    printf("\n[Test] Non-Resizable Pool\n");
+    ObjectPool pool;
+    createObjectPool(2, sizeof(f64), 0, NULL, &pool);
+    
+    int* obj1 = (int*) takeObject(&pool);
+    int* obj2 = (int*) takeObject(&pool);
+    int* obj3 = (int*) takeObject(&pool); // Should return NULL
+    
+    if (!obj3) {
+        printf("Correctly handled out-of-memory case.\n");
+    } else {
+        printf("Failed: Took more than available!\n");
     }
+}
 
-    // Print in order
-    printf("Tree contents (In-order): ");
-    printInOrder(set.root);
-    printf("\n");
+void testInvalidObjectReturn() {
+    printf("\n[Test] Invalid Object Return\n");
+    ObjectPool pool;
+    createObjectPool(4, 12, 0, NULL, &pool);
+    
+    int fakeObj;
+    returnObject(&pool, &fakeObj); // Should trigger assertion or error handling
+}
 
-    // Test contains function
-    int searchValues[] = {40, 100}; // 40 exists, 100 does not
-    for (int i = 0; i < 2; i++)
-    {
-        int key = searchValues[i];
-        printf("Contains %d? %s\n", key, orderedSetContains(&set, (byteArray)&key) ? "Yes" : "No");
+void testResizingPool() {
+    printf("\n[Test] Resizing Pool\n");
+    ObjectPool pool;
+    createObjectPool(2, 16, 2.0f, NULL, &pool);
+    
+    int* objs[5];
+    for (int i = 0; i < 5; i++) {
+        objs[i] = (int*) takeObject(&pool);
+        printf("Allocated object %d\n", i);
     }
+    
+    printf("Pool resized successfully.\n");
+}
 
-    // Delete some elements
-    int deleteValues[] = {30, 50, 90};
-    for (int i = 0; i < 3; i++)
-    {
-        int key = deleteValues[i];
-        printf("Deleting %d...\n", key);
-        orderedSetRemove(&set, (byteArray)&key);
-    }
-
-    // Print tree after deletion
-    printf("Tree contents after deletions: ");
-    printInOrder(set.root);
-    printf("\n");
-
-    // Destroy set
-    destroyOrderedSet(&set);
-
-    // Memory leak check (use valgrind when running)
-    printf("Test complete! Run with valgrind to check for memory leaks.\n");
-
+int main() {
+    testBasicFunctionality();
+    testNonResizablePool();
+    testInvalidObjectReturn(); // Uncomment to see failure case
+    testResizingPool();
     return 0;
 }

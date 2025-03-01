@@ -1,5 +1,8 @@
 cd ..
 make
+cd library
+make 
+cd ..
 clear
 ./bin/tokenizerTests
 ./bin/parserTests

@@ -63,9 +63,9 @@ void logOutput(LogLevel LEVEL, const char* MESSAGE, ...)
 // - - - | Assert Functions | - - -
 
 
-void reportAssertionFailure(const char* EXPRESSION, const char* MESSAGE, const char* FILE, int LINE)
+void reportAssertionFailure(const char* EXPRESSION, const char* MESSAGE, const char* FILE, const char* FUNCTION, int LINE)
 {
-  logOutput(LOG_LEVEL_FATAL, "ASSERT FAIL :     %s\nMESSAGE     :     %s\nLOCATION    :     file: %s at line: %d\n", EXPRESSION, MESSAGE, FILE, LINE);
+  logOutput(LOG_LEVEL_FATAL, "ASSERT FAIL :     %s\nMESSAGE     :     %s\nLOCATION    :     file: %s at line: %d in function %s\n", EXPRESSION, MESSAGE, FILE, LINE, FUNCTION);
 }
 
 void reportTODO(const char* COMMENT, const char* FILE, const char* FUNCTION, int LINE)
