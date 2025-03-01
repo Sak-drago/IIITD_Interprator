@@ -1,12 +1,23 @@
 #pragma once 
 #include "../defines.h"
 #include "../library/include/linearAlloc.h"
+#include "../library/include/filesystem.h"
 #include "ast.h"
 #include <unordered_map>
 #include <vector>
 
 
 // - - - Structs and Enums - - - 
+
+// - - - @brief : All the ways that the program can fail
+typedef enum ExitMessage
+{
+  EXIT_MESSAGE_SYNTAX_ERROR,
+  EXIT_MESSAGE_OUT_OF_MEMORY,
+  EXIT_MESSAGE_FILE_CREATION_FAIL,
+  EXIT_MESSAGE_SUCCESS,
+  EXIT_MESSAGE_COUNT
+} ExitMessage;
 
 // - - - @brief : All the possible types, we would support
 typedef enum DataType
@@ -37,17 +48,19 @@ typedef struct Data
 typedef struct Environment
 {
   LinearAllocator                         memory;
-  std::unordered_map<std::string, Data>  pointers;
+  std::unordered_map<std::string, Data>   pointers;
 } Environment;
 
 typedef struct Program
 {
-  std::vector<Node*>  statements;
-  std::vector<Node*> functionDefined;
-  LinearAllocator     allocator;
-  Environment         global;
-  Environment         stack;
-  Environment*        currentEnv = &global;
+  std::vector<Node*>                        statements;
+  std::vector<Node*>                        functionDefined;
+  std::unordered_map<std::string, Node*>    functionPointers;
+  LinearAllocator                           allocator;
+  Environment                               global;
+  Environment                               stack;
+  Environment*                              currentEnv = &global;
+  File                                      output;
 } Program;
 
 

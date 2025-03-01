@@ -1,6 +1,7 @@
 #include "../include/evaluator.h"
 #include "../include/program.h"
-#include "../include/ast.h" 
+#include "../include/ast.h"
+#include <string>
 
 Program runtime;
 
@@ -22,4 +23,50 @@ Data evaluate(const Node* NODE)
   }
 }
 
+
+// - - - IO functions - - - 
 void raiseException(const char* EXCEPTION) { FORGE_LOG_ERROR("Exception raised:\t%s", EXCEPTION); }
+void say(const char* MESSAGE)
+{
+  FORGE_ASSERT_MESSAGE(MESSAGE, "Cannot print a NULL Message");
+  static u64 written = 0;
+  writeFile(&runtime.output, strlen(MESSAGE), MESSAGE, &written);
+  FORGE_LOG_INFO(MESSAGE);
+}
+
+
+// - - - | Runtime | - - - 
+
+
+// - - - setup - - - 
+
+bool createRuntime()
+{
+  if (!openFile("output.txt", FILE_MODE_WRITE, false, &runtime.output)) return false;
+  say("IIIT-D Language : by Just Somebody and Sakshat Sachdeva");
+  return true;
+}
+
+ExitMessage run()
+{
+  ExitMessage failureMode;
+  if (!createRuntime())
+  {
+    failureMode = EXIT_MESSAGE_FILE_CREATION_FAIL;
+    goto exit;
+  }
+
+exit:
+  switch(failureMode)
+  {
+    case EXIT_MESSAGE_FILE_CREATION_FAIL : 
+      FORGE_LOG_FATAL("We failed to create the Runtime for the program to run");
+      break;
+
+    default :
+      FORGE_LOG_WARNING("Not yet Handled");
+      exit(1);
+  }
+  return failureMode;
+}
+
