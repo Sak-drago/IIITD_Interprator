@@ -75,6 +75,7 @@ $(OBJ_DIR)/%.o: $(EVAL_DIR)/%.cpp
 # Clean up the compiled files and binaries
 clean:
 	rm -rf $(BIN_DIR) $(OBJ_DIR)
+	rm -rf library/bin library/.o
 
 .PHONY: all clean
 

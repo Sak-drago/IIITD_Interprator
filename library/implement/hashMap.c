@@ -159,8 +159,8 @@ void* hashMapRemove(HashMap* MAP, const byteArray KEY, unsigned long long KEY_SI
     MAP->elements[index] = head->next;
   }
   else 
-  {
-    prev->next = head->next;
+  { 
+    prev->next = head->next; 
   }
 
   void* result = head->value;

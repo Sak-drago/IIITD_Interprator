@@ -3,43 +3,13 @@
 #include "../include/logger.h"
 #include <stdlib.h>
 
-static void resizeObjectPool(ObjectPool* POOL)
-{
-  // - - - get more memory
-  u64 newCapacity = (u64)(POOL->capacity * POOL->resizeFactor);
-  FORGE_LOG_WARNING("[OBJECT POOL] resizing from : %lld to %lld bytes", POOL->capacity, newCapacity);
-
-  POOL->memory    = realloc(POOL->memory, newCapacity * POOL->objectSize);
-  FORGE_ASSERT_MESSAGE(POOL->memory, "[OBJECT POOL] : resizing failed");
-
-  // - - - initialize new free slots
-  for (u64  i = POOL->capacity; i < newCapacity - 1; ++i)
-  {
-    u64* whereToStore = (u64*)((u8*)POOL->memory + (i * POOL->objectSize));
-    u64  whatToStore  = (i + 1) * POOL->objectSize;
-    *whereToStore = whatToStore;
-  }
-
-  // - - - set the last one to -1
-  u64* lastOne = (u64*)((u8*)POOL->memory + ((newCapacity - 1) * POOL->objectSize));
-  *lastOne = -1;
-
-  // - - - Update the Pool Metadata
-  POOL->capacity        = newCapacity;
-  POOL->freeListOffset  = POOL->capacity * POOL->objectSize;
-}
-
-void createObjectPool(u64 TOTAL_CAPACITY, u64 OBJECT_SIZE, f32 RESIZE_FACTOR, void* MEMORY, ObjectPool* POOL)
+void createObjectPool(u64 TOTAL_CAPACITY, u64 OBJECT_SIZE, void* MEMORY, ObjectPool* POOL)
 {
   FORGE_ASSERT_MESSAGE(POOL,                           "[OBJECT POOL] : Cannot initialize a NULL Object Pool");
   FORGE_ASSERT_MESSAGE(TOTAL_CAPACITY > 0,             "[OBJECT POOL] : Must be able to store atleast 1 object");
-  FORGE_ASSERT_MESSAGE(RESIZE_FACTOR != 1,             "[OBJECT POOL] : No point in assigning a RESIZE_FACTOR 1. If you want no resizing, pass 0");
-  FORGE_ASSERT_MESSAGE(RESIZE_FACTOR >=0,              "[OBJECT POOL] : Cannot make memory smaller. Use free memory instead of RESIZE_FACTOR");
-  FORGE_ASSERT_MESSAGE(!(MEMORY != NULL && RESIZE_FACTOR != 0.0f),  "[OBJECT POOL] : Cannot resize if we dont own the memory");
 
   POOL->capacity        = TOTAL_CAPACITY;
   POOL->memory          = MEMORY;
-  POOL->resizeFactor    = RESIZE_FACTOR;
   POOL->objectSize      = (OBJECT_SIZE >= sizeof(u64)) ? OBJECT_SIZE : sizeof(u64);
 
   if (OBJECT_SIZE < sizeof(u64))
@@ -48,10 +18,6 @@ void createObjectPool(u64 TOTAL_CAPACITY, u64 OBJECT_SIZE, f32 RESIZE_FACTOR, vo
     FORGE_LOG_WARNING("\t It works on an internal linked list structure that requires all the objects to be atleast %lu bytes in size", sizeof(u64)); 
     FORGE_LOG_WARNING("\t so %lu byte padding has been added to your objects", sizeof(u64) - OBJECT_SIZE);
     FORGE_LOG_WARNING("\t this is causing %.2f percent of the POOL to be wasted", 100.0f * (POOL->objectSize - OBJECT_SIZE) / (f32)POOL->objectSize);
-  }
-  if (RESIZE_FACTOR != 0)
-  {
-    FORGE_LOG_WARNING("[OBJECT POOL] : will resize when it runs out of memory by a factor of %f", RESIZE_FACTOR);
   }
   if (MEMORY != NULL)
   {
@@ -85,25 +51,15 @@ void* takeObject(ObjectPool* POOL)
 
   if (POOL->freeListOffset == -1)
   {
-    if (POOL->resizeFactor == 0) 
-    { 
-      FORGE_LOG_ERROR("[OBJECT POOL] : ran out of memory!"); 
-      return NULL; 
-    }
-    resizeObjectPool(POOL);
+    FORGE_LOG_ERROR("[OBJECT POOL] : ran out of memory!"); 
+    return NULL; 
   }
 
-  /*
   // - - - make a pointer from the offset
   u8* ptr = ((u8*) POOL->memory) + POOL->freeListOffset;
 
   // - - - move the free list to the next free object, which is the value of ptr
   POOL->freeListOffset = *(u64*) ptr;
-  */
-  u8* ptr = ((u8*)POOL->memory) + POOL->freeListOffset;
-  FORGE_ASSERT_MESSAGE((u64*)ptr < (u64*)((u8*)POOL->memory + POOL->capacity * POOL->objectSize),
-                     "[OBJECT POOL] : Invalid free list pointer, out of bounds");
-POOL->freeListOffset = *(u64*)ptr;
 
   // - - - return the void*
   return (void*) ptr;
@@ -138,7 +94,6 @@ void destroyObjectPool(ObjectPool* POOL)
   free(POOL->memory);
   POOL->objectSize      = -1;
   POOL->capacity        = -1;
-  POOL->resizeFactor    = -1;
   POOL->freeListOffset  = -1;
 }
 

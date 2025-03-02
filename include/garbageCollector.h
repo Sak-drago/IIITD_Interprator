@@ -3,12 +3,12 @@
 
 typedef struct Blob
 {
-  u64 offset;
-  u64   size;
+  u64   offset;
+  u32   size;
+  u32   refCount;
 } Blob;
 
-void printBlob(Blob* BLOB);
-void print();
+FORGE_API void  visualizeMemoryChatGPTAh();
 FORGE_API void  startGarbageCollector   (u8    PAGES);
-FORGE_API void* forgeAllocate           (u64   DATA_SIZE);
+FORGE_API void* forgeAllocate           (u32   DATA_SIZE);
 FORGE_API void  forgeFree               (void* POINTER);

@@ -188,6 +188,33 @@ static void deleteSetNodes(OrderedSet* SET, AVLNode* NODE)
 }
 
 
+// - - - traverse - - - 
+
+static void inorderTraverse(AVLNode* NODE, orderedSetCallback CALLBACK)
+{
+  if (!NODE) return;
+  inorderTraverse(NODE->left, CALLBACK);  // - - - left
+  CALLBACK(NODE->key);                    // - - - root
+  inorderTraverse(NODE->right, CALLBACK); // - - - right
+}
+
+static void preorderTraverse(AVLNode* NODE, orderedSetCallback CALLBACK)
+{
+  if (!NODE) return;
+  CALLBACK(NODE->key);                    // - - - root
+  inorderTraverse(NODE->left, CALLBACK);  // - - - left
+  inorderTraverse(NODE->right, CALLBACK); // - - - right
+}
+
+static void postorderTraverse(AVLNode* NODE, orderedSetCallback CALLBACK)
+{
+  if (!NODE) return;
+  inorderTraverse(NODE->left, CALLBACK);  // - - - left
+  inorderTraverse(NODE->right, CALLBACK); // - - - right
+  CALLBACK(NODE->key);                    // - - - root
+}
+
+
 // - - - | Ordered Set Functions | - - - 
 
 
@@ -226,7 +253,35 @@ void destroyOrderedSet(OrderedSet* SET)
 {
   FORGE_ASSERT_MESSAGE(SET, "[ORDERED SET] : Cannot destroy a NULL ordered set");
   deleteSetNodes(SET, SET->root);
-  SET->root = NULL;
+  SET->root         = NULL;
+  SET->deallocator  = NULL;
+  SET->allocator    = NULL;
+  SET->compare      = NULL;
+  SET->keySize      = -1;
+  SET->size         = -1;
+}
+
+void clearOrderedSet(OrderedSet* SET)
+{
+  FORGE_ASSERT_MESSAGE(SET, "[ORDERED SET] : Cannot clear a NULL ordered set");
+  deleteSetNodes(SET, SET->root);
+  SET->root         = NULL;
+  SET->size         = 0;
+}
+
+
+// - - - metadata - - - 
+
+u64 getOrderedSetSize(OrderedSet* SET)
+{
+  FORGE_ASSERT_MESSAGE(SET, "[ORDERED SET] : Cannot get size of a NULL ordered Set");
+  return SET->size;
+}
+
+u64 getOrderedSetHeight(OrderedSet* SET)
+{
+  FORGE_ASSERT_MESSAGE(SET, "[ORDERED SET] : Cannot get height of a NULL ordered Set");
+  return  SET->root ? SET->root->height : 0;
 }
 
 
@@ -254,4 +309,157 @@ bool orderedSetContains(OrderedSet* SET, byteArray KEY)
   FORGE_ASSERT_MESSAGE(KEY, "[ORDERED SET] : Cannot remove a NULL key");
 
   return containsNode(SET->root, SET->compare, KEY, SET->keySize);
+}
+
+
+// - - - Predecessor Successor - - - 
+
+byteArray orderedSetSuccessor(OrderedSet* SET, byteArray KEY)
+{
+  FORGE_ASSERT_MESSAGE(SET, "[ORDERED SET] : Cannot find successor in a NULL ordered set");
+  FORGE_ASSERT_MESSAGE(KEY, "[ORDERED SET] : Cannot find successor of a NULL key");
+
+  AVLNode* current    = SET->root;
+  AVLNode* successor  = NULL;
+
+  while (current)
+  {
+    i32 cmp = SET->compare(KEY, current->key, SET->keySize);
+    if (cmp < 0)
+    {
+      successor = current;
+      current = current->left;
+    }
+    else current = current->right;
+  }
+
+  if (!successor) return NULL;
+  return successor->key;
+}
+
+byteArray orderedSetPredecessor(OrderedSet* SET, byteArray KEY)
+{
+  FORGE_ASSERT_MESSAGE(SET, "[ORDERED SET] : Cannot find predecessor in a NULL ordered set");
+  FORGE_ASSERT_MESSAGE(KEY, "[ORDERED SET] : Cannot find predecessor of a NULL key");
+
+  AVLNode* current    = SET->root;
+  AVLNode* successor  = NULL;
+
+  while (current)
+  {
+    i32 cmp = SET->compare(KEY, current->key, SET->keySize);
+    if (cmp < 0)
+    {
+      successor = current;
+      current = current->right;
+    }
+    else current = current->left;
+  }
+
+  if (!successor) return NULL;
+  return successor->key;
+}
+
+
+// - - - Traversal - - - 
+
+void orderedSetTraverse(OrderedSet* SET, orderedSetCallback CALLBACK, TraversalType TYPE)
+{
+  FORGE_ASSERT_MESSAGE(SET,       "[ORDERED SET] : Cannot traverse a NULL ordered set");
+  FORGE_ASSERT_MESSAGE(CALLBACK,  "[ORDERED SET] : Cannot traverse with a NULL callback");
+  FORGE_ASSERT_MESSAGE(TYPE >= TRAVERSAL_IN_ORDER && TYPE < TRAVERSAL_COUNT,      "[ORDERED SET] : Can only do inorder, preorder or postorder traverse");
+
+  switch (TYPE)
+  {
+    case TRAVERSAL_PRE_ORDER  : preorderTraverse  (SET->root, CALLBACK); break;
+    case TRAVERSAL_IN_ORDER   : inorderTraverse   (SET->root, CALLBACK); break;
+    case TRAVERSAL_POST_ORDER : postorderTraverse (SET->root, CALLBACK); break;
+    default                   : break; 
+  }
+}
+
+void createOrderedSetIter(OrderedSet* SET, OrderedSetIterator* ITERATOR)
+{
+  FORGE_ASSERT_MESSAGE(SET,       "[ORDERED SET] : Cannot iterate a NULL ordered set");
+  FORGE_ASSERT_MESSAGE(ITERATOR,  "[ORDERED SET] : Cannot iterate an ordered set with a NULL iterator");
+
+  ITERATOR->top = -1;
+  AVLNode* current = SET->root;
+
+  while (current)
+  {
+    ITERATOR->stack[++(ITERATOR->top)] = current;
+    current = current->left;
+  }
+}
+
+byteArray orderedSetIterNext(OrderedSet* SET, OrderedSetIterator* ITERATOR)
+{
+  FORGE_ASSERT_MESSAGE(SET,       "[ORDERED SET] : Cannot iterate a NULL ordered set");
+  FORGE_ASSERT_MESSAGE(ITERATOR,  "[ORDERED SET] : Cannot iterate an ordered set with a NULL iterator");
+
+  if (ITERATOR->top < 0) return NULL;
+
+  AVLNode* current = ITERATOR->stack[(ITERATOR->top)--];
+  byteArray retVal = current->key;
+
+  current = current->right;
+  while (current)
+  {
+    ITERATOR->stack[++(ITERATOR->top)] = current;
+    current = current->left;
+  }
+
+  return retVal;
+}
+
+
+// - - - find - - - 
+
+byteArray orderedSetFindSmallestAtleast(OrderedSet* SET, byteArray KEY)
+{
+  FORGE_ASSERT_MESSAGE(SET, "[ORDERED SET] : Cannot seacrh in a NULL ordered set");
+  FORGE_ASSERT_MESSAGE(KEY, "[ORDERED SET] : Cannot seacrh with a NULL key");
+
+  AVLNode* current = SET->root;
+  AVLNode* bestFit = NULL;
+
+  while (current)
+  {
+    i32 cmp = SET->compare(KEY, current->key, SET->keySize);
+
+    // - - - if the current node is larger or equal, it might be the answer
+    if (cmp <= 0)
+    {
+      bestFit = current;
+      current = current->left;    // - - - move to left, to find something smaller
+    }
+    else current = current->right; // - - - not greater than yet
+  }
+
+  return bestFit ? bestFit->key : NULL;
+}
+
+byteArray orderedSetFindGreatestSmallerThan(OrderedSet* SET, byteArray KEY)
+{
+  FORGE_ASSERT_MESSAGE(SET, "[ORDERED SET] : Cannot seacrh in a NULL ordered set");
+  FORGE_ASSERT_MESSAGE(KEY, "[ORDERED SET] : Cannot seacrh with a NULL key");
+
+  AVLNode* current = SET->root;
+  AVLNode* bestFit = NULL;
+
+  while (current)
+  {
+    i32 cmp = SET->compare(KEY, current->key, SET->keySize);
+
+    // - - - if the current node is smaller, it might be the answer
+    if (cmp > 0)
+    {
+      bestFit = current;
+      current = current->right;    // - - - move to left, to find something smaller
+    }
+    else current = current->left;  // - - - not greater than yet
+  }
+
+  return bestFit ? bestFit->key : NULL;
 }

@@ -9,11 +9,10 @@ typedef struct objectPool
   u64   objectSize;
   u64   capacity;
   u64   freeListOffset;
-  f32   resizeFactor;
   void* memory;
 } ObjectPool;
 
-FORGE_API void  createObjectPool(u64 TOTAL_CAPACITY, u64 OBJECT_SIZE, f32 RESIZE_FACTOR, void* MEMORY, ObjectPool* POOL);
+FORGE_API void  createObjectPool(u64 TOTAL_CAPACITY, u64 OBJECT_SIZE, void* MEMORY, ObjectPool* POOL);
 
 FORGE_API void* takeObject(ObjectPool* POOL);
 
