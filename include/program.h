@@ -56,10 +56,8 @@ typedef struct Program
   std::vector<Node*>                        statements;
   std::vector<Node*>                        functionDefined;
   std::unordered_map<std::string, Node*>    functionPointers;
+  std::unordered_map<std::string, Data>     pointers;
   LinearAllocator                           allocator;
-  Environment                               global;
-  Environment                               stack;
-  Environment*                              currentEnv = &global;
   File                                      output;
 } Program;
 

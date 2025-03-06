@@ -1,6 +1,7 @@
 #include "../include/evaluator.h"
 #include "../include/program.h"
 #include "../include/ast.h"
+#include "../include/garbageCollector.h"
 #include <string>
 
 Program runtime;
@@ -43,7 +44,8 @@ void say(const char* MESSAGE)
 bool createRuntime()
 {
   if (!openFile("output.txt", FILE_MODE_WRITE, false, &runtime.output)) return false;
-  say("IIIT-D Language : by Just Somebody and Sakshat Sachdeva");
+  startGarbageCollector(1);
+  say("IIIT-D Language (v1.0.0): by Just Somebody and Sakshat Sachdeva\n");
   return true;
 }
 
