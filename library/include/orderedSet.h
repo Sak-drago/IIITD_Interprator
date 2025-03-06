@@ -6,7 +6,7 @@ extern "C" {
 
 // - - - Allocate and Deallocate functions
 typedef char* byteArray;
-typedef i32    (memoryCompare)      (const void* PTR_1,   const void* PTR_2,        unsigned long SIZE);
+typedef i32   (memoryCompare)      (const void* PTR_1,   const void* PTR_2,        unsigned long SIZE);
 typedef void  (memoryDeallocate)   (void*           MEM_ADDR);
 typedef void* (memoryAllocate)     (unsigned long   SIZE);
 
@@ -57,7 +57,7 @@ FORGE_API u64       getOrderedSetHeight   (OrderedSet* SET);
 
 // - - - Insert, Remove, Search
 FORGE_API void      orderedSetInsert      (OrderedSet* SET, byteArray KEY);
-FORGE_API void      orderedSetRemove      (OrderedSet* SET, byteArray KEY);
+FORGE_API byteArray orderedSetRemove      (OrderedSet* SET, byteArray KEY);
 FORGE_API bool      orderedSetContains    (OrderedSet* SET, byteArray KEY);
 
 // - - - Successor and Predecessor

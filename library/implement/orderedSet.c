@@ -2,6 +2,7 @@
 #include "../include/logger.h"
 #include "../include/asserts.h"
 #include "stdlib.h"
+#include <string.h>
 
 
 // - - - | Helper Functions On Nodes | - - - 
@@ -28,7 +29,9 @@ static AVLNode* createNode(OrderedSet* SET, byteArray KEY)
   return node;
 }
 
+
 // - - - rotation - - -
+
 static AVLNode* rotateRight(AVLNode* Y)
 {
   AVLNode* X    = Y->left;
@@ -37,12 +40,12 @@ static AVLNode* rotateRight(AVLNode* Y)
   X->right      = Y;
   Y->left       = T2;
 
-  Y->height     = 1 + getHeight(Y->left) > getHeight(Y->right) ? 
+  Y->height     = 1 + ((getHeight(Y->left) > getHeight(Y->right)) ? 
                         getHeight(Y->left) : 
-                        getHeight(Y->right);
-  X->height     = 1 + getHeight(X->left) > getHeight(X->right) ? 
+                        getHeight(Y->right));
+  X->height     = 1 + ((getHeight(X->left) > getHeight(X->right)) ? 
                         getHeight(X->left) : 
-                        getHeight(X->right);
+                        getHeight(X->right));
   return X;
 }
 
@@ -51,19 +54,20 @@ static AVLNode* rotateLeft(AVLNode* X)
   AVLNode* Y    = X->right;
   AVLNode* T2   = Y->left;
 
-  Y->right      = X;
+  Y->left       = X;
   X->right      = T2;
 
-  X->height     = 1 + (getHeight(X->left) > getHeight(X->right) ? 
+  X->height     = 1 + ((getHeight(X->left) > getHeight(X->right)) ? 
                         getHeight(X->left) : 
                         getHeight(X->right));
-  Y->height     = 1 + (getHeight(Y->left) > getHeight(Y->right) ? 
+  Y->height     = 1 + ((getHeight(Y->left) > getHeight(Y->right)) ? 
                         getHeight(Y->left) : 
                         getHeight(Y->right));
   return Y;
 }
 
-// - - - find - - - 
+// - - - find - - -
+
 static AVLNode* findMinNode(AVLNode* NODE)
 {
   while (NODE->left) NODE = NODE->left;
@@ -122,59 +126,98 @@ static AVLNode* insertNode(OrderedSet* SET, AVLNode* NODE, byteArray KEY)
   return NODE;
 }
 
-static AVLNode* deleteNode(OrderedSet* SET, AVLNode* NODE, byteArray KEY)
+typedef struct 
 {
-  if (NODE == NULL) return NULL;
+    AVLNode*  node;
+    byteArray removedKey;
+} DeleteResult;
+
+static DeleteResult deleteNode(OrderedSet* SET, AVLNode* NODE, byteArray KEY)
+{
+  DeleteResult result = {NULL, NULL};
+  
+  if (NODE == NULL) return result;
 
   // - - - compare 
-  int cmp                       = SET->compare(KEY, NODE->key, SET->keySize);
-  if (cmp < 0)      NODE->left  = deleteNode(SET, NODE->left,  KEY);
-  else if (cmp > 0) NODE->right = deleteNode(SET, NODE->right, KEY);
+  int cmp = SET->compare(KEY, NODE->key, SET->keySize);
+  
+  if (cmp < 0) 
+  {
+    DeleteResult leftResult = deleteNode(SET, NODE->left, KEY);
+    NODE->left              = leftResult.node;
+    result.node             = NODE;
+    result.removedKey       = leftResult.removedKey;
+  }
+  else if (cmp > 0) 
+  {
+    DeleteResult rightResult  = deleteNode(SET, NODE->right, KEY);
+    NODE->right               = rightResult.node;
+    result.node               = NODE;
+    result.removedKey         = rightResult.removedKey;
+  }
   else 
   {
-    if (NODE->left == NULL || NODE->right == NULL)
+    // - - - Found the node to delete, save the key to return it
+    byteArray removedKey  = NODE->key;
+    result.removedKey     = removedKey;
+    
+    if (NODE->left == NULL || NODE->right == NULL) 
     {
       AVLNode* temp = NODE->left ? NODE->left : NODE->right;
-      if (temp == NULL)
+
+      if (temp == NULL) 
       {
-        temp = NODE;
-        NODE = NULL;
+        temp        = NODE;
+        result.node = NULL;
       }
       else 
       {
-        *NODE = *temp;
+        *NODE       = *temp;
+        result.node = NODE;
       }
       SET->deallocator(temp);
     }
     else 
     {
-      AVLNode* temp = findMinNode(NODE->right);
-      NODE->key = temp->key;
-      NODE->right = deleteNode(SET, NODE->right, temp->key);
+      AVLNode* temp             = findMinNode(NODE->right);
+      NODE->key                 = temp->key;
+      
+      DeleteResult rightResult  = deleteNode(SET, NODE->right, temp->key);
+      NODE->right               = rightResult.node;
+      
+      result.node = NODE;
     }
   }
 
-  if (NODE == NULL) return NULL;
-  NODE->height = 1 + (getHeight(NODE->left) > getHeight(NODE->right) ? 
-                      getHeight(NODE->left) :
-                      getHeight(NODE->right));
+  if (result.node == NULL) return result;
+  
+  result.node->height = 1 + (getHeight(result.node->left) > getHeight(result.node->right) ? 
+                        getHeight(result.node->left) :
+                        getHeight(result.node->right));
 
   // - - - balance 
-  i64 balance = getBalance(NODE);
-  if (balance > 1  && getBalance(NODE->left)  >= 0) return rotateRight(NODE);
-  if (balance < -1 && getBalance(NODE->right) <= 0) return rotateLeft(NODE);
-  if (balance > 1  && getBalance(NODE->left)   < 0)   
+  i64 balance = getBalance(result.node);
+  
+  if (balance > 1 && getBalance(result.node->left) >= 0) 
   {
-    NODE->left = rotateLeft(NODE->left);
-    return rotateRight(NODE);
+    result.node = rotateRight(result.node);
   }
-  if (balance < -1 && getBalance(NODE->right) > 0)  
+  else if (balance < -1 && getBalance(result.node->right) <= 0) 
   {
-    NODE->right = rotateRight(NODE->right);
-    return rotateLeft(NODE);
+    result.node = rotateLeft(result.node);
+  }
+  else if (balance > 1 && getBalance(result.node->left) < 0) 
+  {
+    result.node->left = rotateLeft(result.node->left);
+    result.node       = rotateRight(result.node);
+  }
+  else if (balance < -1 && getBalance(result.node->right) > 0) 
+  {
+    result.node->right  = rotateRight(result.node->right);
+    result.node         = rotateLeft(result.node);
   }
 
-  return NODE;
+  return result;
 }
 
 static void deleteSetNodes(OrderedSet* SET, AVLNode* NODE)
@@ -201,17 +244,17 @@ static void inorderTraverse(AVLNode* NODE, orderedSetCallback CALLBACK)
 static void preorderTraverse(AVLNode* NODE, orderedSetCallback CALLBACK)
 {
   if (!NODE) return;
-  CALLBACK(NODE->key);                    // - - - root
-  inorderTraverse(NODE->left, CALLBACK);  // - - - left
-  inorderTraverse(NODE->right, CALLBACK); // - - - right
+  CALLBACK(NODE->key);                     // - - - root
+  preorderTraverse(NODE->left, CALLBACK);  // - - - left
+  preorderTraverse(NODE->right, CALLBACK); // - - - right
 }
 
 static void postorderTraverse(AVLNode* NODE, orderedSetCallback CALLBACK)
 {
   if (!NODE) return;
-  inorderTraverse(NODE->left, CALLBACK);  // - - - left
-  inorderTraverse(NODE->right, CALLBACK); // - - - right
-  CALLBACK(NODE->key);                    // - - - root
+  postorderTraverse(NODE->left, CALLBACK);  // - - - left
+  postorderTraverse(NODE->right, CALLBACK); // - - - right
+  CALLBACK(NODE->key);                      // - - - root
 }
 
 
@@ -293,14 +336,21 @@ void orderedSetInsert(OrderedSet* SET, byteArray KEY)
   FORGE_ASSERT_MESSAGE(KEY, "[ORDERED SET] : Cannot insert a NULL key");
 
   SET->root = insertNode(SET, SET->root, KEY);
+  SET->size++;
 }
 
-void orderedSetRemove(OrderedSet* SET, byteArray KEY)
+byteArray orderedSetRemove(OrderedSet* SET, byteArray KEY)
 {
   FORGE_ASSERT_MESSAGE(SET, "[ORDERED SET] : Cannot remove from a NULL ordered set");
   FORGE_ASSERT_MESSAGE(KEY, "[ORDERED SET] : Cannot remove a NULL key");
 
-  SET->root = deleteNode(SET, SET->root, KEY);
+  u64 oldSize         = SET->size;
+  DeleteResult result = deleteNode(SET, SET->root, KEY);
+  SET->root           = result.node;
+
+  if (oldSize > SET->size) SET->size--;
+  
+  return result.removedKey;
 }
 
 bool orderedSetContains(OrderedSet* SET, byteArray KEY)
@@ -314,7 +364,7 @@ bool orderedSetContains(OrderedSet* SET, byteArray KEY)
 
 // - - - Predecessor Successor - - - 
 
-byteArray orderedSetSuccessor(OrderedSet* SET, byteArray KEY)
+byteArray orderedSetPredecessor(OrderedSet* SET, byteArray KEY)
 {
   FORGE_ASSERT_MESSAGE(SET, "[ORDERED SET] : Cannot find successor in a NULL ordered set");
   FORGE_ASSERT_MESSAGE(KEY, "[ORDERED SET] : Cannot find successor of a NULL key");
@@ -325,39 +375,61 @@ byteArray orderedSetSuccessor(OrderedSet* SET, byteArray KEY)
   while (current)
   {
     i32 cmp = SET->compare(KEY, current->key, SET->keySize);
-    if (cmp < 0)
+    if (cmp < 0) // - - - Move left, but mark current as potential successor
     {
       successor = current;
       current = current->left;
     }
-    else current = current->right;
+    else if (cmp > 0)
+    {
+      current = current->right; // - - - Move right, ignore successor
+    }
+    else
+    {
+      // - - - Case: If there's a right subtree, get the min node in right subtree
+      if (current->right)
+      {
+        successor = findMinNode(current->right);
+      }
+      break;
+    }
   }
 
-  if (!successor) return NULL;
-  return successor->key;
+  return successor ? successor->key : NULL;
 }
 
-byteArray orderedSetPredecessor(OrderedSet* SET, byteArray KEY)
+byteArray orderedSetSuccessor(OrderedSet* SET, byteArray KEY)
 {
   FORGE_ASSERT_MESSAGE(SET, "[ORDERED SET] : Cannot find predecessor in a NULL ordered set");
   FORGE_ASSERT_MESSAGE(KEY, "[ORDERED SET] : Cannot find predecessor of a NULL key");
 
-  AVLNode* current    = SET->root;
-  AVLNode* successor  = NULL;
+  AVLNode* current     = SET->root;
+  AVLNode* predecessor = NULL;
 
   while (current)
   {
     i32 cmp = SET->compare(KEY, current->key, SET->keySize);
-    if (cmp < 0)
+    if (cmp > 0) // - - - Move right, but mark current as potential predecessor
     {
-      successor = current;
+      predecessor = current;
       current = current->right;
     }
-    else current = current->left;
+    else if (cmp < 0)
+    {
+      current = current->left; // - - - Move left, ignore predecessor
+    }
+    else
+    {
+      // Case: If there's a left subtree, get the max node in left subtree
+      if (current->left)
+      {
+        predecessor = findMaxNode(current->left);
+      }
+      break;
+    }
   }
 
-  if (!successor) return NULL;
-  return successor->key;
+  return predecessor ? predecessor->key : NULL;
 }
 
 

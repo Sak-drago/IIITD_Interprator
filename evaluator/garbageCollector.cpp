@@ -3,8 +3,11 @@
 #include "../library/include/logger.h"
 #include "../library/include/objectPool.h"
 #include "../library/include/orderedSet.h"
+#include <cstdio>
+#include <string.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include "stdlib.h"
 
 
 // - - -  metadata  - - - 
@@ -17,23 +20,32 @@ u64             blobCap   = 0;        // - - - how much metadata
 ObjectPool      blobs;                // - - - the blobs
 ObjectPool      setsNodes;            // - - - AVL tree Nodes
 OrderedSet      slaveBlobs;           // - - - AVL tree for allocated (balanced on offset)
-OrderedSet      freeBlobs;            // - - - AVL tree for free (balanced on size and then offset)
+OrderedSet      freeBlobsSize;        // - - - AVL tree for free (balanced on size and then offset)
+OrderedSet      freeBlobsOffset;      // - - - AVL tree for free (balanced on size and then offset)
 
 
 // - - - Helper Functionality - - - 
 
-i32 compareSlaveBlobs(const void* SLAVE_1, const void* SLAVE_2, size_t SIZE)
+void printBlob(byteArray a)
+{
+  Blob* BLOB= (Blob*) a;
+  FORGE_LOG_TRACE("[ offset : %llu, size : %d, refcount : %d ]", BLOB->offset, BLOB->size, BLOB->refCount);
+}
+
+i32 compareBlobsOnOffset(const void* SLAVE_1, const void* SLAVE_2, size_t SIZE)
 {
   FORGE_ASSERT_MESSAGE(SLAVE_1, "[GARBAGE COLLECTOR] : Lost track of one allocation");
   FORGE_ASSERT_MESSAGE(SLAVE_2, "[GARBAGE COLLECTOR] : Lost track of one allocation");
 
   const Blob* blobA = (const Blob*) SLAVE_1;
   const Blob* blobB = (const Blob*) SLAVE_2;
-
-  return (i64)blobA->offset - (i64)blobB->offset;
+  
+  if (blobA->offset < blobB->offset) return -1;
+  if (blobA->offset > blobB->offset) return 1;
+  return 0;
 }
 
-i32 compareFreeBlobs(const void* BLOB_1, const void* BLOB_2, size_t SIZE)
+i32 compareBlobsOnSize(const void* BLOB_1, const void* BLOB_2, size_t SIZE)
 {
   FORGE_ASSERT_MESSAGE(BLOB_1, "[GARBAGE COLLECTOR] : Lost track of one free fragment");
   FORGE_ASSERT_MESSAGE(BLOB_2, "[GARBAGE COLLECTOR] : Lost track of one free fragment");
@@ -50,15 +62,11 @@ i32 compareFreeBlobs(const void* BLOB_1, const void* BLOB_2, size_t SIZE)
 void* mallocSetNode(unsigned long BYTES) { return takeObject(&setsNodes); }
 void freeSetNode(void* PTR) { returnObject(&setsNodes, PTR); }
 
-void printBlob(byteArray a)
-{
-  Blob* BLOB= (Blob*) a;
-  printf("[ offset : %llu, size : %d, refcount : %d ] \n", BLOB->offset, BLOB->size, BLOB->refCount);
-}
 
 void printTree(OrderedSet* TREE)
 {
   orderedSetTraverse(TREE, printBlob, TRAVERSAL_IN_ORDER);
+  visualizeObjectPool(&blobs);
 }
 
 
@@ -76,7 +84,7 @@ void startGarbageCollector(u8 PAGES)
   // - - - get the size
   u64 pageSize  = sysconf(_SC_PAGESIZE);    
   capacity      = pageSize * PAGES;
-  blobCap       = capacity / 4;     // - - - WARN: arbitrary, @Sakshat, needs to provide count of assignment statements
+  blobCap       = capacity / 2;     // - - - WARN: arbitrary, @Sakshat, needs to provide count of assignment statements
    
   // - - - get the memory
   memory        = mmap
@@ -89,12 +97,13 @@ void startGarbageCollector(u8 PAGES)
     );
   
   // - - - make room for blobs and setNodes
-  createObjectPool(blobCap, sizeof(Blob), NULL, &blobs);
-  createObjectPool(blobCap, sizeof(AVLNode), NULL, &setsNodes);
+  createObjectPool(blobCap, sizeof(Blob),     NULL, &blobs);
+  createObjectPool(blobCap, sizeof(AVLNode),  NULL, &setsNodes);
 
   // - - - make the two ordered sets 
-  createOrderedSet(&slaveBlobs, sizeof(Blob), compareSlaveBlobs, mallocSetNode, freeSetNode);
-  createOrderedSet(&slaveBlobs, sizeof(Blob), compareFreeBlobs,  mallocSetNode, freeSetNode);
+  createOrderedSet(&slaveBlobs,       sizeof(Blob), compareBlobsOnOffset, mallocSetNode, freeSetNode);
+  createOrderedSet(&freeBlobsOffset,  sizeof(Blob), compareBlobsOnOffset, mallocSetNode, freeSetNode);
+  createOrderedSet(&freeBlobsSize,    sizeof(Blob), compareBlobsOnSize,   mallocSetNode, freeSetNode);
 
   // - - - finish
   size    = 0;
@@ -106,8 +115,6 @@ void startGarbageCollector(u8 PAGES)
 // - - - allocate memory
 void* forgeAllocate(u32 DATA_SIZE)
 {
-  FORGE_LOG_DEBUG("here are the slaves");
-  printTree(&slaveBlobs);
   // - - - start the garbage collector if not already
   if (!started) 
   {
@@ -129,25 +136,40 @@ void* forgeAllocate(u32 DATA_SIZE)
       .size     = DATA_SIZE, 
       .refCount = 0
     };
-  Blob* matchBlob = (Blob*) orderedSetFindSmallestAtleast(&freeBlobs, (byteArray)&query);
+  Blob* matchBlob = (Blob*) orderedSetFindSmallestAtleast(&freeBlobsSize, (byteArray)&query);
 
   if (matchBlob)
   {
-    FORGE_LOG_TRACE("[GARBAGE_COLLECTOR] : Found a free blob to allocate memory (%lld bytes) from", DATA_SIZE);
+    FORGE_LOG_DEBUG("[GARBAGE_COLLECTOR] : Found a free blob to allocate memory (%lld bytes) from", DATA_SIZE);
+   
+    orderedSetRemove(&freeBlobsSize,    (byteArray)matchBlob);
+    orderedSetRemove(&freeBlobsOffset,  (byteArray)matchBlob);
+
+    // - - - TODO: Merge in allocate memory too
     if (matchBlob->size > DATA_SIZE)
     {
-      FORGE_LOG_TRACE("[GARBAGE_COLLECTOR] : Free Blob too big (%lld bytes), splitting into two smaller blobs", matchBlob->size);
+      FORGE_LOG_DEBUG("[GARBAGE_COLLECTOR] : Free Blob too big (%lld bytes), splitting into two smaller blobs", matchBlob->size);
       Blob* remaining     = (Blob*) takeObject(&blobs);
       remaining->offset   = matchBlob->offset + DATA_SIZE;
       remaining->size     = matchBlob->size   - DATA_SIZE;
       remaining->refCount = 0;
-      orderedSetInsert(&freeBlobs, (byteArray)remaining);
+      orderedSetInsert(&freeBlobsSize,   (byteArray)remaining);
+      orderedSetInsert(&freeBlobsOffset, (byteArray)remaining);
     }
 
     matchBlob->size     = DATA_SIZE;
     matchBlob->refCount = 1;
+    printBlob((byteArray)matchBlob);
     orderedSetInsert(&slaveBlobs, (byteArray)matchBlob);
+  
+    FORGE_LOG_DEBUG("Slaves after allocation - ");
+    printTree(&slaveBlobs);
 
+    FORGE_LOG_DEBUG("Free After Allocation : Size");
+    FORGE_LOG_DEBUG("Free After Allocation : Offset");
+    printTree(&freeBlobsSize);
+    printTree(&freeBlobsOffset);
+  
     // - - - get the memory to be returned
     return (void*) ((u8*)memory + matchBlob->offset);
   }
@@ -161,75 +183,109 @@ void* forgeAllocate(u32 DATA_SIZE)
   size += DATA_SIZE;
 
   // - - - create the metadata Blob
-  Blob* mrBlob = (Blob*) takeObject(&blobs);
-  mrBlob->offset = size - DATA_SIZE;
-  mrBlob->size = DATA_SIZE;
-  mrBlob->refCount = 1;
-  FORGE_LOG_DEBUG("Here is mr bkob");
-  printBlob((byteArray)mrBlob);
+  Blob* mrBlob      = (Blob*) takeObject(&blobs);
+  mrBlob->offset    = size - DATA_SIZE;
+  mrBlob->size      = DATA_SIZE;
+  mrBlob->refCount  = 1;
   orderedSetInsert(&slaveBlobs, (byteArray)mrBlob);
 
+  FORGE_LOG_DEBUG("Slaves after allocation - ");
+  printTree(&slaveBlobs);
+
+  FORGE_LOG_DEBUG("Free After Allocation : Size");
+  printTree(&freeBlobsSize);
+  
+  FORGE_LOG_DEBUG("Free After Allocation : Offset");
+  printTree(&freeBlobsOffset);
   return result;
 }
 
 void forgeFree(void* POINTER)
 {
-  FORGE_LOG_INFO("Printing the slaves");
-  printTree(&slaveBlobs);
-  FORGE_LOG_INFO("Slves ^\n")
   FORGE_ASSERT_MESSAGE(started, "[GARBAGE_COLLECTOR] : Cannot free anything before an allocation has been made : i.e : garbage collector has been started");
   FORGE_ASSERT_MESSAGE(POINTER, "[GARBAGE COLLECTOR] : Cannot free a NULL pointer");
 
   // - - - make offset from pointer and ensure that it was allocated
-  u64 offset    = (u8*) POINTER - (u8*) memory; 
-  Blob temp     = {offset, 0, 0};
-  Blob* actual  = (Blob*) orderedSetFindSmallestAtleast(&slaveBlobs, (byteArray)&temp);
+  u64   offset    = (u8*) POINTER - (u8*) memory; 
+  FORGE_LOG_WARNING("Doing a free on offset : %lld", offset);
+  Blob  temp      = {offset, 0, 0};
+  Blob* actual    = (Blob*) orderedSetFindSmallestAtleast(&slaveBlobs, (byteArray)&temp);
   FORGE_ASSERT_MESSAGE(actual,                   "[GARBAGE_COLLECTOR] : Tried to free memory that doesnt exist");
-  printBlob((byteArray)&temp);
-  printBlob((byteArray)actual);
   FORGE_ASSERT_MESSAGE(actual->offset == offset, "[GARBAGE_COLLECTOR] : Tried to free memory that was never allocated");
 
   // - - - delete it from the slaves and add a free blob with the same offset and size to the free set
-  orderedSetRemove(&slaveBlobs, (byteArray) &temp);
-  Blob newBlob  = {offset, actual->size, 0}; 
-  orderedSetInsert(&freeBlobs,  (byteArray) &newBlob);
+  Blob* newBlob     = (Blob*) takeObject(&blobs);
+  newBlob->offset   = offset;
+  newBlob->size     = actual->size;
+  newBlob->refCount = 0;
+  orderedSetRemove(&slaveBlobs, (byteArray) actual);
+  returnObject(&blobs, actual);
+  orderedSetInsert(&freeBlobsSize,  (byteArray) newBlob);
+  orderedSetInsert(&freeBlobsOffset, (byteArray) newBlob);
 
   // - - - perform merge with successor and predecessor
   while (true)
   {
-    Blob* successor   = (Blob*) orderedSetSuccessor  (&freeBlobs, (byteArray)&newBlob);
-    Blob* predecessor = (Blob*) orderedSetPredecessor(&freeBlobs, (byteArray)&newBlob);
+    Blob* successor   = (Blob*) orderedSetSuccessor  (&freeBlobsOffset, (byteArray)&newBlob);
+    Blob* predecessor = (Blob*) orderedSetPredecessor(&freeBlobsOffset, (byteArray)&newBlob);
+    Blob* oldBlob     = newBlob;
+  
 
-    if (successor && newBlob.offset + newBlob.size == successor->offset)
-    {  
-      orderedSetRemove(&freeBlobs, (byteArray) &newBlob);
-      orderedSetRemove(&freeBlobs, (byteArray) successor);
+    if (successor && oldBlob->offset + oldBlob->size == successor->offset)
+    {
+      FORGE_LOG_WARNING("Performing merge with successor");
 
-      newBlob = 
-        { 
-          .offset   = newBlob.offset, 
-          .size     = newBlob.size + successor->size, 
-          .refCount = 0
-        };
-      orderedSetInsert(&freeBlobs, (byteArray)&newBlob);
+      newBlob           = (Blob*) takeObject(&blobs);
+      newBlob->offset   = oldBlob->offset;
+      newBlob->size     = oldBlob->size + successor->size;
+      newBlob->refCount = 0;
+
+      orderedSetRemove(&freeBlobsSize,   (byteArray) oldBlob);
+      orderedSetRemove(&freeBlobsSize,   (byteArray) successor);
+
+      orderedSetRemove(&freeBlobsOffset, (byteArray) oldBlob);
+      orderedSetRemove(&freeBlobsOffset, (byteArray) successor);
+
+      orderedSetInsert(&freeBlobsSize,   (byteArray) newBlob);
+      orderedSetInsert(&freeBlobsOffset, (byteArray) newBlob);
+
+      returnObject(&blobs, oldBlob);
+      returnObject(&blobs, successor);
+      
       continue;
     }
 
-    else if (predecessor && newBlob.offset == predecessor->offset + predecessor->size)
+    else if (predecessor && oldBlob->offset == predecessor->offset + predecessor->size)
     {
-      orderedSetRemove(&slaveBlobs, (byteArray) &newBlob);
-      orderedSetRemove(&slaveBlobs, (byteArray) predecessor);
+      FORGE_LOG_WARNING("Performing merge with predecessor");
 
-      newBlob = 
-        {
-          .offset   = predecessor->offset, 
-          .size     = newBlob.size + predecessor->size, 
-          .refCount = 0
-        };
-      orderedSetInsert(&freeBlobs, (byteArray)&newBlob);
+      newBlob           = (Blob*) takeObject(&blobs);
+      newBlob->offset   = predecessor->offset;
+      newBlob->size     = oldBlob->size + predecessor->size;
+      newBlob->refCount = 0;
+
+      orderedSetRemove(&freeBlobsOffset,   (byteArray) oldBlob);
+      orderedSetRemove(&freeBlobsOffset,   (byteArray) predecessor);
+
+      orderedSetRemove(&freeBlobsSize,    (byteArray) oldBlob);
+      orderedSetRemove(&freeBlobsSize,    (byteArray) predecessor);
+
+      orderedSetInsert(&freeBlobsSize,  (byteArray) newBlob);
+      
+      returnObject(&blobs, oldBlob);
+      returnObject(&blobs, successor);
+      
       continue;
     }
     break;
-  }  
+  } 
+  FORGE_LOG_DEBUG("Slaves after free of %d", offset);
+  printTree(&slaveBlobs);
+
+  FORGE_LOG_DEBUG("Free (size) After free of %d", offset);
+  printTree(&freeBlobsSize);
+  
+  FORGE_LOG_DEBUG("Free (offset) After free of %d", offset);
+  printTree(&freeBlobsOffset);
 }
 

@@ -101,10 +101,6 @@ void visualizeObjectPool(ObjectPool* POOL)
 {
   FORGE_ASSERT_MESSAGE(POOL, "[OBJECT_POOL] : Cannot visualize a NULL object POol");
 
-  FORGE_LOG_INFO("\n[OBJECT POOL] Visualization\n");
-  FORGE_LOG_DEBUG("Capacity: %llu | Object Size: %llu | Free List Offset: %llu\n", 
-          POOL->capacity, POOL->objectSize, POOL->freeListOffset);
-
   u64 freeCount = 0, usedCount = 0;
   u64 offset = POOL->freeListOffset;
   int isFree[POOL->capacity]; // Array to track free/used objects
@@ -121,13 +117,6 @@ void visualizeObjectPool(ObjectPool* POOL)
 
   usedCount = POOL->capacity - freeCount;
 
-  // Print the memory state
-  printf("[");
-  for (u64 i = 0; i < POOL->capacity; i++) {
-      printf(isFree[i] ? " F " : " U "); // 'F' for Free, 'U' for Used
-      if (i != POOL->capacity - 1) printf("|");
-  }
-  printf("] (F = Free, U = Used)\n");
 
-  FORGE_LOG_INFO("Used: %llu | Free: %llu\n\n", usedCount, freeCount);
+  FORGE_LOG_INFO("Used: %llu | Free: %llu", usedCount, freeCount);
 }
