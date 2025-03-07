@@ -1,6 +1,7 @@
 #include "../include/evaluator.h"
 #include "../include/program.h"
 
+/*
 
 Data evaluateIfNode(const Node* IF_NODE)
 {
@@ -36,3 +37,5 @@ Data evaluateIfNode(const Node* IF_NODE)
   }
   return data;
 }
+
+*/

@@ -1,5 +1,6 @@
 #include "../include/evaluator.h"
 
+/*
 FORGE_INLINE DataType determineNumberType(const char* NUMBER_STRING)
 {
   char* end;
@@ -60,3 +61,5 @@ Data evaluateNumberNode(const Node* NUMBER_NODE)
       .value = value
     };
 }
+
+*/

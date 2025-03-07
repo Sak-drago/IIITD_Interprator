@@ -73,6 +73,24 @@ void printTree(OrderedSet* TREE)
 // - - - | Functions | - - - 
 
 
+// - - - stop a garbage collector 
+void stopGarbageCollector()
+{
+  FORGE_ASSERT_MESSAGE(started, "[GARBAGE_COLLECTOR] : Cannot stop if not started");
+
+  FORGE_LOG_WARNING("[GARBAGE_COLLECTOR] : Self destruct");
+  destroyOrderedSet(&slaveBlobs);
+  destroyOrderedSet(&freeBlobsOffset);
+  destroyOrderedSet(&freeBlobsSize);
+  destroyObjectPool(&setsNodes);
+  destroyObjectPool(&blobs);
+  munmap(memory, capacity);
+  memory    = NULL;
+  capacity  = 0;
+  blobCap   = 0;
+  size      = 0;
+}
+
 // - - - create the garbage collector
 void startGarbageCollector(u8 PAGES)
 {
@@ -288,4 +306,3 @@ void forgeFree(void* POINTER)
   FORGE_LOG_DEBUG("Free (offset) After free of %d", offset);
   printTree(&freeBlobsOffset);
 }
-

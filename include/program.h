@@ -2,6 +2,7 @@
 #include "../defines.h"
 #include "../library/include/linearAlloc.h"
 #include "../library/include/filesystem.h"
+#include "../include/garbageCollector.h"
 #include "ast.h"
 #include <unordered_map>
 #include <vector>
@@ -41,24 +42,17 @@ typedef enum DataType
 typedef struct Data
 {
   DataType type;
-  void*    value;
+  Blob     memory;
 } Data;
 
-// - - - @vrief : Environment is : stack heap and so on
-typedef struct Environment
-{
-  LinearAllocator                         memory;
-  std::unordered_map<std::string, Data>   pointers;
-} Environment;
 
 typedef struct Program
 {
-  std::vector<Node*>                        statements;
-  std::vector<Node*>                        functionDefined;
-  std::unordered_map<std::string, Node*>    functionPointers;
-  std::unordered_map<std::string, Data>     pointers;
-  LinearAllocator                           allocator;
-  File                                      output;
+  std::unordered_map<std::string, Data> variables;
+  std::vector<Node*>                    statements;
+  std::vector<Node*>                    functionDefined;
+  LinearAllocator                       allocator;
+  File                                  output;
 } Program;
 
 
@@ -73,14 +67,6 @@ FORGE_API std::string   getDataStr              (const Data* DATA);
 // - - - @brief : returns how many bytes are needed to store the Data Type
 FORGE_API i8            getDataTypeSize         (const DataType DATA_TYPE);
 
-// - - - @brief : tells whether the currentEnv is a local environment
-FORGE_API bool          isCurrentEnvLocal();
-
-// - - - @brief : tells whether the variable is in the local environment
-FORGE_API bool          isVariableInLocalEnv   (std::string& VAR_NAME);
-
-// - - - @brief : tells whether the variable is in the global environmnet
-FORGE_API bool          isVariableInGlobalEnv  (std::string& VAR_NAME);
 
 // - - - sigleton program
 extern Program runtime;

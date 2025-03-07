@@ -1,5 +1,6 @@
 #include "../include/evaluator.h"
 
+/*
 Data evaluateBooleanNode(const Node* BOOLEAN_NODE)
 {
   // - - - all these checks will dissapear in the release build
@@ -17,3 +18,4 @@ Data evaluateBooleanNode(const Node* BOOLEAN_NODE)
       .value = memory
     };
 }
+*/

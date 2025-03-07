@@ -4,14 +4,16 @@
 #include "../include/garbageCollector.h"
 #include <string>
 
-Program runtime;
 
+
+Program runtime;
 
 // - - - evaluate the Node - - - 
 
 Data evaluate(const Node* NODE)
 {
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot evaluate a NULL node");
+  /*
   switch (NODE->type)
   {
     case NODE_TYPE_NUMBER                   : return evaluateNumberNode     (NODE);
@@ -21,7 +23,9 @@ Data evaluate(const Node* NODE)
     case NODE_TYPE_VARIABLE                 : return evaluateVariableNode   (NODE);
     case NODE_TYPE_IF                       : return evaluateIfNode         (NODE);
     default : raiseException(std::string("Type not handled yet : " + std::string(getNodeString((Node*) NODE).c_str())).c_str());
+    exit(1);
   }
+*/
 }
 
 
@@ -57,6 +61,8 @@ ExitMessage run()
     failureMode = EXIT_MESSAGE_FILE_CREATION_FAIL;
     goto exit;
   }
+
+  for (Node* n: runtime.statements)    evaluate(n);
 
 exit:
   switch(failureMode)

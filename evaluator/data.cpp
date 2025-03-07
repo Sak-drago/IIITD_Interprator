@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 
+/*
 
 std::string getDataTypeStr   (DataType DATA_TYPE)
 {
@@ -57,17 +58,4 @@ i8 getDataTypeSize(const DataType DATA_TYPE)
   }
 }
 
-bool isCurrentEnvLocal() 
-{ 
-  return runtime.currentEnv == &runtime.stack; 
-}
-
-bool isVariableInLocalEnv(std::string& VAR_NAME)
-{ 
-  return runtime.stack.pointers.find(VAR_NAME) != runtime.stack.pointers.end();
-}
-
-bool isVariableInGlobalEnv(std::string& VAR_NAME)
-{
-  return runtime.global.pointers.find(VAR_NAME) != runtime.global.pointers.end();
-}
+*/

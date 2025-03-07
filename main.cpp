@@ -1,6 +1,7 @@
 #include "include/ast.h"
 #include "include/evaluator.h"
 #include "include/program.h"
+#include "include/garbageCollector.h"
 #include "include/tokenizer.h"
 #include "include/parser.h"
 #include "library/include/filesystem.h"
@@ -43,8 +44,7 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
       FORGE_LOG_INFO("Beginning Parsing of %s-", ARGUMENT_VECTOR[2]);
       // - - - 1 MB assigned for now
       createLinearAllocator(1024 * 1024, 0, NULL, &runtime.allocator);
-      createLinearAllocator(1024 * 1024, 0, NULL, &runtime.global.memory);
-      createLinearAllocator(1024 * 1024, 0, NULL, &runtime.stack.memory);
+      FORGE_LOG_INFO("%p", runtime.allocator.memory);
       for (auto i : tokens) produceAST(&i, &runtime);
       for (Node* node : runtime.statements)
       {
@@ -56,9 +56,6 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
       run();
 
       destroyLinearAllocator(&runtime.allocator);
-      destroyLinearAllocator(&runtime.global.memory);
-      destroyLinearAllocator(&runtime.stack.memory);
-      return 0;
       return 0;
     }
 
@@ -101,8 +98,6 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
 
       // - - - 1 MB assigned for now
       createLinearAllocator(1024 * 1024, 0, NULL, &runtime.allocator);
-      createLinearAllocator(1024 * 1024, 0, NULL, &runtime.global.memory);
-      createLinearAllocator(1024 * 1024, 0, NULL, &runtime.stack.memory);
       produceAST(&tokens, &runtime);
 
       for (Node* node : runtime.statements)
@@ -114,28 +109,10 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
       for (Node* node : runtime.statements)
       {
         Data data = evaluate(node);
-        FORGE_LOG_DEBUG(getDataStr(&data).c_str());
-      }
-
-      FORGE_LOG_INFO("Global Environment");
-      auto it = runtime.global.pointers.begin();
-      while (it != runtime.global.pointers.end()) 
-      {
-        FORGE_LOG_DEBUG("Variable Name : %s\tAddress:%p", it->first.c_str(), it->second.value);
-        ++it;
-      }
-      
-      FORGE_LOG_INFO("Local Environment");
-      it = runtime.stack.pointers.begin();
-      while (it != runtime.stack.pointers.end()) 
-      {
-        FORGE_LOG_DEBUG("Variable Name : %s\tAddress:%p", it->first.c_str(), it->second.value);
-        ++it;
+        //FORGE_LOG_DEBUG(getDataStr(&data).c_str());
       }
 
       destroyLinearAllocator(&runtime.allocator);
-      destroyLinearAllocator(&runtime.global.memory);
-      destroyLinearAllocator(&runtime.stack.memory);
       return 0;
     }
   }

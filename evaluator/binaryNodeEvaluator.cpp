@@ -1,6 +1,7 @@
 #include "../include/evaluator.h"
 #include <cmath>
 
+/*
 
 FORGE_INLINE bool areTypeCompatible(DataType TYPE_1, DataType TYPE_2)
 {
@@ -168,3 +169,4 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
 
   return retDat;
 }
+*/

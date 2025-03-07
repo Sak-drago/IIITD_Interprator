@@ -2,6 +2,7 @@
 #include "../include/program.h"
 #include <unordered_map>
 
+/*
 
 Data evaluateAssignmentNode(const Node* ASSIGNMENT_NODE)
 {
@@ -16,7 +17,6 @@ Data evaluateAssignmentNode(const Node* ASSIGNMENT_NODE)
     and if so, get the size of the variable and decide whether we can assign to it         
 
     if it doesnt exist, assign it to the local environment
-  */
 
   std::unordered_map<std::string, Data>* pointers = &runtime.currentEnv->pointers; 
   Data      data;
@@ -53,3 +53,4 @@ Data evaluateAssignmentNode(const Node* ASSIGNMENT_NODE)
     (*pointers)[name] = data;
     return (*pointers)[name];
 }
+*/
