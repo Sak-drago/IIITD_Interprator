@@ -82,7 +82,7 @@ bool initVariableNode(Node* NODE, std::string& NAME)
 }
 
 // - - - initiliaze an assignment node
-bool initAssignmentNode(Node* NODE, std::string& NAME, Node* VALUE)
+bool initAssignmentNode(Node* NODE, std::string& NAME, Node* VALUE, bool IS_PLAG)
 {
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST Assignment Node");
 
@@ -91,9 +91,10 @@ bool initAssignmentNode(Node* NODE, std::string& NAME, Node* VALUE)
     FORGE_LOG_WARNING("The Node passed as VALUE for AST Assignemnt Node intiailization is null");
   }
 
-  NODE->type                            = NODE_TYPE_ASSIGNMENT;
-  NODE->context.assignmentContext.name  = strdup(NAME.c_str());
-  NODE->context.assignmentContext.value = VALUE;
+  NODE->type                             = NODE_TYPE_ASSIGNMENT;
+  NODE->context.assignmentContext.isPlag = IS_PLAG;
+  NODE->context.assignmentContext.name   = strdup(NAME.c_str());
+  NODE->context.assignmentContext.value  = VALUE;
 
   return true;
 }
@@ -257,6 +258,7 @@ std::string getNodeString(Node* NODE, i8 INDENTATION_LEVEL)
         case NODE_TYPE_ASSIGNMENT:
             retVal += "\tName : "                         + std::string(NODE->context.assignmentContext.name);
             retVal += "\n\t" + indent + "Value : "          + getNodeString(NODE->context.assignmentContext.value, INDENTATION_LEVEL + 1);
+            retVal += "\n\t" + indent + "is Plag : "          + (NODE->context.assignmentContext.isPlag ? "Plag" : "Normal");
             break;
 
         case NODE_TYPE_RETURN:

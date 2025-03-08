@@ -390,7 +390,7 @@ Node* parseAssignmentExpression()
 
   // - - - allocate and return the assignmnet Node
   Node* assigmentNode           = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  initAssignmentNode(assigmentNode, variableName, rhs);
+  initAssignmentNode(assigmentNode, variableName, rhs, 1);
   return assigmentNode;
 }
 
@@ -413,7 +413,7 @@ Node* parseNormalAssignmentExpression()
 
   // - - - allocate and return the assignmnet Node
   Node* assigmentNode           = (Node*) linearAllocatorAllocate(&program->allocator, sizeof(Node));
-  initAssignmentNode(assigmentNode, variableName, rhs);
+  initAssignmentNode(assigmentNode, variableName, rhs, 0);
   return assigmentNode;
 }
 

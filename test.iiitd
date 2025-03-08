@@ -1,9 +1,2 @@
-Plag x = 1
-y = 2
-x > 2
-x = 3
-x > 2
-Fn abc(x,y)
-Fn efg(a,b)
-agar (x > 4) { Plag x = 1 } ya { Plag x = 2 }
-Fn abc(x,y){xyz = 3}
+x = 1
+Plag y = x

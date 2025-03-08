@@ -67,6 +67,7 @@ typedef union NodeContext
 
   struct 
   {
+    bool              isPlag;
     const char*       name;
     struct Node*      value;
   } assignmentContext;
@@ -128,7 +129,7 @@ FORGE_API bool        initBinaryOpNode        (Node* NODE, Node* LEFT_NODE, Node
 
 FORGE_API bool        initVariableNode        (Node* NODE, std::string& NAME);
 
-FORGE_API bool        initAssignmentNode      (Node* NODE, std::string& NAME, Node* VALUE);
+FORGE_API bool        initAssignmentNode      (Node* NODE, std::string& NAME, Node* VALUE, bool IS_PLAG);
 
 FORGE_API bool        initReturnNode          (Node* NODE, Node* VALUE);
 
