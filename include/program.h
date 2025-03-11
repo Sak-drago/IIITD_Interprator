@@ -4,6 +4,7 @@
 #include "../library/include/filesystem.h"
 #include "../include/garbageCollector.h"
 #include "ast.h"
+#include <queue>
 #include <unordered_map>
 #include <vector>
 
@@ -42,7 +43,8 @@ typedef enum DataType
 typedef struct Data
 {
   DataType type;
-  Blob     memory;
+  void*    memory;
+  i32      refCount; 
 } Data;
 
 
@@ -51,6 +53,7 @@ typedef struct Program
   std::unordered_map<std::string, Data> variables;
   std::vector<Node*>                    statements;
   std::vector<Node*>                    functionDefined;
+  LinearAllocator                       stack;
   LinearAllocator                       allocator;
   File                                  output;
 } Program;

@@ -4,7 +4,6 @@
 #include <sstream>
 #include <string>
 
-/*
 
 std::string getDataTypeStr   (DataType DATA_TYPE)
 {
@@ -30,15 +29,14 @@ std::string getDataStr        (const Data* DATA)
 
   std::ostringstream stringBuilder;
   stringBuilder << "\n{\n  DataType  : "  << getDataTypeStr(DATA->type);
-  stringBuilder <<  "\n  Address   : "  << std::hex << DATA->value;
+  stringBuilder <<  "\n  Address   : "  << std::hex << DATA->memory;
   stringBuilder <<  "\n  Value     : ";
 
-  FORGE_LOG_TRACE("%lld", *(i64*)(DATA->value));
   switch (DATA->type)
   {
-    case Integer  : stringBuilder << std::to_string((i64) *static_cast<const i64*>   (DATA->value));      break;
-    case Float    : stringBuilder << std::to_string((f64) *static_cast<const f64*>   (DATA->value));      break;
-    case Bool     : stringBuilder << ((bool) *static_cast<const bool*>(DATA->value) ? "real" : "cap");    break;
+    case Integer  : stringBuilder << std::to_string((i64) *static_cast<const i64*>   (DATA->memory));      break;
+    case Float    : stringBuilder << std::to_string((f64) *static_cast<const f64*>   (DATA->memory));      break;
+    case Bool     : stringBuilder << ((bool) *static_cast<const bool*>(DATA->memory) ? "real" : "cap");    break;
     case Null     : stringBuilder << "Null";                                         break;
   }
   stringBuilder << "\n}";
@@ -58,4 +56,3 @@ i8 getDataTypeSize(const DataType DATA_TYPE)
   }
 }
 
-*/

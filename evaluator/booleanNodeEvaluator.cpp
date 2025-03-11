@@ -1,6 +1,7 @@
 #include "../include/evaluator.h"
 
-/*
+static i32 anonymousVarCount = 0;
+
 Data evaluateBooleanNode(const Node* BOOLEAN_NODE)
 {
   // - - - all these checks will dissapear in the release build
@@ -8,14 +9,10 @@ Data evaluateBooleanNode(const Node* BOOLEAN_NODE)
   FORGE_ASSERT_MESSAGE(BOOLEAN_NODE->type  == NODE_TYPE_BOOLEAN,  "A Node which is not a NODE_TYPE_BOOLEAN cannot be evaluated here");
 
   // - - - assign the value to the memory
-  void* memory      = linearAllocatorAllocate(&(runtime.currentEnv->memory), getDataTypeSize(Bool)); 
+  std::string name  = "anonymous_boolean_" + std::to_string(anonymousVarCount++);
+  Data* pointer     = createVariable(name, Bool);
+  void* memory      = pointer->memory; 
   *((bool*) memory) = BOOLEAN_NODE->context.booleanContext.value;
 
-  // - - - return the data 
-  return Data 
-    {
-      .type  = Bool,
-      .value = memory
-    };
+  return *pointer;
 }
-*/

@@ -1,2 +1,2 @@
-x = 1
-Plag y = x
+x + 2 > 3
+agar (x > 4) { Plag x = 1 } ya { Plag x = 2 }

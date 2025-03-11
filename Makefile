@@ -1,6 +1,6 @@
 
 # Set the compiler
-CXX = clang++
+CXX = g++
 
 # Compiler flags
 CXXFLAGS = -std=c++17 -Wall -Wextra -g

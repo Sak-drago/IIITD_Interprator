@@ -1,6 +1,8 @@
 #include "../include/evaluator.h"
+#include <string>
 
-/*
+static i32 anonymousVarCount = 0;
+
 FORGE_INLINE DataType determineNumberType(const char* NUMBER_STRING)
 {
   char* end;
@@ -51,15 +53,8 @@ Data evaluateNumberNode(const Node* NUMBER_NODE)
   // - - - assign the value to the memory
   const char*       number      = NUMBER_NODE->context.numberContext.value;
   const DataType    numberType  = determineNumberType(number); 
-  void*             value       = linearAllocatorAllocate(&(runtime.currentEnv->memory), getDataTypeSize(numberType)); 
-  assign(number, numberType, value);
-
-  // - - - return the data 
-  return Data 
-    {
-      .type  = numberType,
-      .value = value
-    };
+  std::string       name        = "anonymous_number_" + std::to_string(anonymousVarCount++);
+  Data* pointer                 = createVariable(name, numberType);
+  assign(number, numberType, pointer->memory);
+  return *pointer;
 }
-
-*/

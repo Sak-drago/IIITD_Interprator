@@ -115,7 +115,6 @@ void linearAllocZero(LinearAllocator* ALLOCATOR)
   FORGE_ASSERT_MESSAGE(ALLOCATOR->memory,    "ALLOCATOR has no memory");
 
   ALLOCATOR->allocated = 0;
-  memset(ALLOCATOR->memory, 0, ALLOCATOR->totalSize);
 
   FORGE_LOG_WARNING("ALLOCATOR has zeroed out all the memory");
 }

@@ -13,19 +13,17 @@ Program runtime;
 Data evaluate(const Node* NODE)
 {
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot evaluate a NULL node");
-  /*
   switch (NODE->type)
   {
     case NODE_TYPE_NUMBER                   : return evaluateNumberNode     (NODE);
     case NODE_TYPE_BINARY_OPERATOR          : return evaluateBinaryNode     (NODE);
     case NODE_TYPE_BOOLEAN                  : return evaluateBooleanNode    (NODE);
-    case NODE_TYPE_ASSIGNMENT               : return evaluateAssignmentNode (NODE);
+//    case NODE_TYPE_ASSIGNMENT               : return evaluateAssignmentNode (NODE);
     case NODE_TYPE_VARIABLE                 : return evaluateVariableNode   (NODE);
     case NODE_TYPE_IF                       : return evaluateIfNode         (NODE);
     default : raiseException(std::string("Type not handled yet : " + std::string(getNodeString((Node*) NODE).c_str())).c_str());
     exit(1);
   }
-*/
 }
 
 
@@ -49,13 +47,16 @@ bool createRuntime()
 {
   if (!openFile("output.txt", FILE_MODE_WRITE, false, &runtime.output)) return false;
   startGarbageCollector(1);
-  say("IIIT-D Language (v1.0.0): by Just Somebody and Sakshat Sachdeva\n");
+  runtime.variables.clear();
+  createLinearAllocator(1024 * 8, 0, NULL, &runtime.stack);
+
+  say("IIIT-D Language (v1.0.0): by Just Somebody and Sakshat Sachdeva\n\n\n");
   return true;
 }
 
 ExitMessage run()
 {
-  ExitMessage failureMode;
+  ExitMessage failureMode = EXIT_MESSAGE_SUCCESS;
   if (!createRuntime())
   {
     failureMode = EXIT_MESSAGE_FILE_CREATION_FAIL;
@@ -71,6 +72,10 @@ exit:
       FORGE_LOG_FATAL("We failed to create the Runtime for the program to run");
       break;
 
+    case EXIT_MESSAGE_SUCCESS : 
+      FORGE_LOG_INFO("Program successfully finished");
+      break;
+
     default :
       FORGE_LOG_WARNING("Not yet Handled");
       exit(1);
@@ -78,3 +83,22 @@ exit:
   return failureMode;
 }
 
+
+// - - - create varibale
+Data* createVariable(std::string& NAME, DataType TYPE)
+{
+  FORGE_ASSERT_MESSAGE(runtime.variables.find(NAME) == runtime.variables.end(), "Variable already exists");
+  FORGE_ASSERT_MESSAGE(TYPE < DATA_TYPE_COUNT, "Unlawful data types");
+  
+  runtime.variables[NAME]       = 
+                                {
+                                  .type     = TYPE,
+                                  .memory   = forgeAllocate(getDataTypeSize(TYPE)), 
+                                  .refCount = 1,
+                                };
+  Data* pointer                 = &(runtime.variables[NAME]);
+  Data** area                   = (Data**) linearAllocatorAllocate(&runtime.stack, 8);
+  *area                         = pointer;
+
+  return pointer;
+}
