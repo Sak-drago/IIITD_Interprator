@@ -187,6 +187,7 @@ Block* parseBlockStatement()
   {
     FORGE_LOG_DEBUG("Parsing a block statement");
     block->statements.push_back(parseStatement());
+    if(input->at(tokenIndex).type == NUMBER) tokenIndex++;
   }
   return block;
 }
