@@ -1,7 +1,6 @@
 #include "../include/evaluator.h"
 #include "../include/program.h"
 
-/*
 
 Data evaluateIfNode(const Node* IF_NODE)
 {
@@ -17,25 +16,20 @@ Data evaluateIfNode(const Node* IF_NODE)
   Data execute = evaluate(conditional);
   if (execute.type != Bool) raiseException("The condition of an if statement must be of type : Bool");
   
-  bool decision = *((bool*) execute.value);
+  bool decision = *((bool*) execute.memory);
   Data data;
   data.type = Null;
 
-  FORGE_LOG_INFO("Evaluated : %s", decision ? "true" : "false");
 
   if (decision)
   {
-    FORGE_LOG_TRACE("Doing the if statemnet");
     if (consequence == NULL)                    return data;
     for (Node* it : consequence->statements)    evaluate(it);
   }
   else 
   {
-    FORGE_LOG_TRACE("Doing the else statemnet");
     if (alternative == NULL)                    return data;
     for (Node* it : alternative->statements)    evaluate(it);
   }
   return data;
 }
-
-*/

@@ -1,7 +1,7 @@
 #include "../include/evaluator.h"
 #include <cmath>
 
-/*
+static i32 anonymousVarCount = 0;  
 
 FORGE_INLINE bool areTypeCompatible(DataType TYPE_1, DataType TYPE_2)
 {
@@ -55,6 +55,7 @@ FORGE_INLINE DataType getResultingDataType (DataType TYPE_1, DataType TYPE_2, Bi
         default       : raiseException("Not handled yet");
       }
   }
+  exit(1);
 }
 
 
@@ -64,18 +65,20 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
   FORGE_ASSERT_MESSAGE(BINARY_NODE != NULL, "Cannot evaluate a NULL Binary Operator Node");
   FORGE_ASSERT_MESSAGE(BINARY_NODE->type == NODE_TYPE_BINARY_OPERATOR, "A Node which is not a NODE_TYPE_BINARY_OPERATOR cannot be evaluated here");
 
-  // - - - get the values of the left and right Data
+  // - - - get the memorys of the left and right Data
   Data left  = evaluate(BINARY_NODE->context.binaryContext.left);
   Data right = evaluate(BINARY_NODE->context.binaryContext.right);
   
   if (!areTypeCompatible(left.type, right.type)) 
       raiseException("Types are nt compatible for binary operations");
 
-  // - - - TODO: Garbage collection might want to free the value of left and right
+  // - - - TODO: Garbage collection might want to free the memory of left and right
 
   BinaryOperator  op              = BINARY_NODE->context.binaryContext.opcode;
   DataType        resultingType   = getResultingDataType(left.type, right.type, op);
-  void*           memory          = linearAllocatorAllocate(&runtime.currentEnv->memory, getDataTypeSize(resultingType));
+  std::string     name            = "anonymous_binary_var" + std::to_string(anonymousVarCount++);
+  Data*           pointer         = createVariable(name, resultingType);
+  void*           memory          = pointer->memory;
 
 
   // - - - Macros - - - 
@@ -133,9 +136,9 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
   #define HANDLE_BINARY_OP(LTYPE) \
     switch (right.type) \
     { \
-      case Bool      :     {i8  rVal = *((i8*)right.value);  HANDLE_OP(LTYPE, i8);  break;} \
-      case Integer   :     {i64 rVal = *((i64*)right.value); HANDLE_OP(LTYPE, i64); break;} \
-      case Float     :     {f64 rVal = *((f64*)right.value); HANDLE_OP(LTYPE, f64); break;} \
+      case Bool      :     {i8  rVal = *((i8*)right.memory);  HANDLE_OP(LTYPE, i8);  break;} \
+      case Integer   :     {i64 rVal = *((i64*)right.memory); HANDLE_OP(LTYPE, i64); break;} \
+      case Float     :     {f64 rVal = *((f64*)right.memory); HANDLE_OP(LTYPE, f64); break;} \
       default: raiseException("Operation on " #LTYPE " and a non-number Node is undefined");\
     } \
     break;
@@ -145,12 +148,12 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
   {
     case Bool:
     {
-      bool lVal = *((bool*)left.value);
+      bool lVal = *((bool*)left.memory);
       switch (right.type)
       {
         case Bool : 
           {
-            bool rVal = *((bool*)right.value);
+            bool rVal = *((bool*)right.memory);
             HANDLE_OP(bool, bool);
             break;
           }
@@ -158,15 +161,10 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
       }
       break;
     }
-    case Integer    : { i64 lVal  = *((i64*)left.value);  HANDLE_BINARY_OP(i64) ; break;}
-    case Float      : { f64 lVal  = *((f64*)left.value);  HANDLE_BINARY_OP(f64) ; break;}
+    case Integer    : { i64 lVal  = *((i64*)left.memory);  HANDLE_BINARY_OP(i64) ; break;}
+    case Float      : { f64 lVal  = *((f64*)left.memory);  HANDLE_BINARY_OP(f64) ; break;}
     default : raiseException("Operation not defined between a number and a non-number");
   }
 
-  Data retDat;
-  retDat.type = resultingType;
-  retDat.value = memory;
-
-  return retDat;
+  return *pointer;
 }
-*/

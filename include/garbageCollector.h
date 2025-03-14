@@ -5,7 +5,6 @@ typedef struct Blob
 {
   u64   offset;
   u32   size;
-  u32   refCount;
 } Blob;
 
 FORGE_API void  startGarbageCollector   (u8    PAGES);

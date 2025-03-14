@@ -2,6 +2,7 @@
 #include "program.h"
 #include "../library/include/asserts.h"
 #include "../library/include/logger.h"
+#include "../include/garbageCollector.h"
 #include <limits>
 
 
@@ -9,7 +10,7 @@
 FORGE_API ExitMessage  run();
 bool          createRuntime           ();
 void          bol                     (const char* MESSAGE);
-
+Data*         createVariable          (std::string& NAME, DataType TYPE);
 // - - - @brief : construct Data out of the AST and raises Exceptions
 Data          evaluate                (const Node* NODE);
 
