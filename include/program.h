@@ -34,6 +34,8 @@ typedef enum DataType
   Array,
   List,
   Dictionary,
+  // - - - special
+  Plag,
   // - - - used only by the evaluator
   ERROR,
   DATA_TYPE_COUNT

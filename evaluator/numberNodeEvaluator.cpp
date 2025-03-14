@@ -44,7 +44,7 @@ FORGE_INLINE void assign(const char* NUMBER_STRING, DataType TYPE, void* MEMORY)
   }
 }
 
-Data evaluateNumberNode(const Node* NUMBER_NODE)
+Data evaluateNumberNode(const Node* NUMBER_NODE, const char* NAME)
 {
   // - - - all these checks will dissapear in the release build
   FORGE_ASSERT_MESSAGE(NUMBER_NODE        != NULL,              "Cannot evaulate a NULL Number Node");
@@ -53,7 +53,7 @@ Data evaluateNumberNode(const Node* NUMBER_NODE)
   // - - - assign the value to the memory
   const char*       number      = NUMBER_NODE->context.numberContext.value;
   const DataType    numberType  = determineNumberType(number); 
-  std::string       name        = "anonymous_number_" + std::to_string(anonymousVarCount++);
+  std::string       name        = NAME ? std::string(NAME) : "anonymous_number_" + std::to_string(anonymousVarCount++);
   Data* pointer                 = createVariable(name, numberType);
   assign(number, numberType, pointer->memory);
   return *pointer;

@@ -13,7 +13,7 @@ Data evaluateIfNode(const Node* IF_NODE)
   const Block*  alternative     = IF_NODE->context.ifContext.alternative;
   const Block*  consequence     = IF_NODE->context.ifContext.consequence;
 
-  Data execute = evaluate(conditional);
+  Data execute = evaluate(conditional, NULL);
   if (execute.type != Bool) raiseException("The condition of an if statement must be of type : Bool");
   
   bool decision = *((bool*) execute.memory);
@@ -24,12 +24,12 @@ Data evaluateIfNode(const Node* IF_NODE)
   if (decision)
   {
     if (consequence == NULL)                    return data;
-    for (Node* it : consequence->statements)    evaluate(it);
+    for (Node* it : consequence->statements)    evaluate(it, NULL);
   }
   else 
   {
     if (alternative == NULL)                    return data;
-    for (Node* it : alternative->statements)    evaluate(it);
+    for (Node* it : alternative->statements)    evaluate(it, NULL);
   }
   return data;
 }
