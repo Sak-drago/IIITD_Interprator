@@ -187,7 +187,8 @@ Block* parseBlockStatement()
   {
     FORGE_LOG_DEBUG("Parsing a block statement");
     block->statements.push_back(parseStatement());
-    if(input->at(tokenIndex).type == NUMBER) tokenIndex++;
+    FORGE_LOG_DEBUG("Parsed a block statement at index %d, token is %s, token name is %s", tokenIndex, getTokenTypeString(input->at(tokenIndex).type).c_str(), input->at(tokenIndex).literal.c_str());
+    if(input->at(tokenIndex).type == NUMBER)  tokenIndex++;
   }
   return block;
 }
@@ -255,6 +256,7 @@ Node* parseInteger(void* ARG)
 {
   FORGE_ASSERT_MESSAGE(ARG != NULL, "Cannot initialize a null AST number node");
 
+  FORGE_LOG_DEBUG("Parsing a number");
   Token token = input->at(tokenIndex);
   std::string number = token.literal;
   initNumberNode((Node*) ARG, number);
@@ -300,6 +302,8 @@ Node* parseIfExpression(void* arg)
 
   // - - - get the condition
   Node* condition               = parseExpression(Precedence::LOWEST);
+  // - - - skip number, variable, bool and close paranthesis
+  if(input->at(tokenIndex).type == IDENTIFIER || input->at(tokenIndex).type == NUMBER) tokenIndex+=2;
 
   // - - - get the body of the if statement in braces
   if (!match(OPEN_BRACE))       raiseSynaxError(OPEN_BRACE);
