@@ -108,8 +108,8 @@ int main (int ARGUMENT_COUNT, char* ARGUMENT_VECTOR[])
       FORGE_LOG_INFO("\nBeginning Evaluation");
       for (Node* node : runtime.statements)
       {
-        Data data = evaluate(node);
-        //FORGE_LOG_DEBUG(getDataStr(&data).c_str());
+        Data data = evaluate(node, NULL);
+        FORGE_LOG_DEBUG(getDataStr(&data).c_str());
       }
 
       destroyLinearAllocator(&runtime.allocator);

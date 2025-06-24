@@ -19,8 +19,8 @@ Data evaluate(const Node* NODE, const char* NAME)
     case NODE_TYPE_BINARY_OPERATOR          : return evaluateBinaryNode     (NODE, NAME);
     case NODE_TYPE_BOOLEAN                  : return evaluateBooleanNode    (NODE, NAME);
 //    case NODE_TYPE_ASSIGNMENT               : return evaluateAssignmentNode (NODE, NAME);
-    case NODE_TYPE_VARIABLE                 : return evaluateVariableNode   (NODE, NAME);
-    case NODE_TYPE_IF                       : return evaluateIfNode         (NODE, NAME);
+    case NODE_TYPE_VARIABLE                 : return evaluateVariableNode   (NODE);
+    case NODE_TYPE_IF                       : return evaluateIfNode         (NODE);
     default : raiseException(std::string("Type not handled yet : " + std::string(getNodeString((Node*) NODE).c_str())).c_str());
     exit(1);
   }

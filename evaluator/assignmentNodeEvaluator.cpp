@@ -23,7 +23,7 @@ Data evaluateAssignmentNode(const Node* ASSIGNMENT_NODE)
     if (toPlag)
     {
       if (rhs->type != NODE_TYPE_VARIABLE) { raiseException("Can only plag a variable, cannot plag say an Integer"); }
-      Data  rhsData     = evaluateVariableNode(ASSIGNMENT_NODE->context.assignmentContext.value, NULL); 
+      Data  rhsData     = evaluateVariableNode(ASSIGNMENT_NODE->context.assignmentContext.value); 
       Data* pointer     = createVariable(name, Plag);
       void* memory      = pointer->memory; 
       Data* actual;
