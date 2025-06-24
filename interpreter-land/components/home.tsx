@@ -32,9 +32,9 @@ export default function Home() {
             </p>
             
             <div className="flex gap-4 justify-center">
-              <Link href="/coming-soon">
+              <Link href="/interpreter">
                 <Button size="lg" variant="default" className="bg-white text-blue-600 hover:bg-white/90">
-                  Coming Soon
+                  Open Interpreter
                 </Button>
               </Link>
               <Link href="https://github.com/Sak-drago/IIITD_Interprator/">
