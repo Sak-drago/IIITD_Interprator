@@ -59,15 +59,15 @@ FORGE_INLINE DataType getResultingDataType (DataType TYPE_1, DataType TYPE_2, Bi
 }
 
 
-Data evaluateBinaryNode(const Node* BINARY_NODE)
+Data evaluateBinaryNode(const Node* BINARY_NODE, const char* NAME)
 {
   // - - - all these checks will disappear in the release build
   FORGE_ASSERT_MESSAGE(BINARY_NODE != NULL, "Cannot evaluate a NULL Binary Operator Node");
   FORGE_ASSERT_MESSAGE(BINARY_NODE->type == NODE_TYPE_BINARY_OPERATOR, "A Node which is not a NODE_TYPE_BINARY_OPERATOR cannot be evaluated here");
 
   // - - - get the memorys of the left and right Data
-  Data left  = evaluate(BINARY_NODE->context.binaryContext.left);
-  Data right = evaluate(BINARY_NODE->context.binaryContext.right);
+  Data left  = evaluate(BINARY_NODE->context.binaryContext.left,  NULL);
+  Data right = evaluate(BINARY_NODE->context.binaryContext.right, NULL);
   
   if (!areTypeCompatible(left.type, right.type)) 
       raiseException("Types are nt compatible for binary operations");
@@ -76,7 +76,7 @@ Data evaluateBinaryNode(const Node* BINARY_NODE)
 
   BinaryOperator  op              = BINARY_NODE->context.binaryContext.opcode;
   DataType        resultingType   = getResultingDataType(left.type, right.type, op);
-  std::string     name            = "anonymous_binary_var" + std::to_string(anonymousVarCount++);
+  std::string     name            = NAME ? std::string(NAME) : "anonymous_binary_" + std::to_string(anonymousVarCount++);
   Data*           pointer         = createVariable(name, resultingType);
   void*           memory          = pointer->memory;
 

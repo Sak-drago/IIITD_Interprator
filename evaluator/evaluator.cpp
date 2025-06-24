@@ -10,17 +10,17 @@ Program runtime;
 
 // - - - evaluate the Node - - - 
 
-Data evaluate(const Node* NODE)
+Data evaluate(const Node* NODE, const char* NAME)
 {
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot evaluate a NULL node");
   switch (NODE->type)
   {
-    case NODE_TYPE_NUMBER                   : return evaluateNumberNode     (NODE);
-    case NODE_TYPE_BINARY_OPERATOR          : return evaluateBinaryNode     (NODE);
-    case NODE_TYPE_BOOLEAN                  : return evaluateBooleanNode    (NODE);
-//    case NODE_TYPE_ASSIGNMENT               : return evaluateAssignmentNode (NODE);
-    case NODE_TYPE_VARIABLE                 : return evaluateVariableNode   (NODE);
-    case NODE_TYPE_IF                       : return evaluateIfNode         (NODE);
+    case NODE_TYPE_NUMBER                   : return evaluateNumberNode     (NODE, NAME);
+    case NODE_TYPE_BINARY_OPERATOR          : return evaluateBinaryNode     (NODE, NAME);
+    case NODE_TYPE_BOOLEAN                  : return evaluateBooleanNode    (NODE, NAME);
+//    case NODE_TYPE_ASSIGNMENT               : return evaluateAssignmentNode (NODE, NAME);
+    case NODE_TYPE_VARIABLE                 : return evaluateVariableNode   (NODE, NAME);
+    case NODE_TYPE_IF                       : return evaluateIfNode         (NODE, NAME);
     default : raiseException(std::string("Type not handled yet : " + std::string(getNodeString((Node*) NODE).c_str())).c_str());
     exit(1);
   }
@@ -63,7 +63,7 @@ ExitMessage run()
     goto exit;
   }
 
-  for (Node* n: runtime.statements)    evaluate(n);
+  for (Node* n: runtime.statements)    evaluate(n, NULL);
 
 exit:
   switch(failureMode)
