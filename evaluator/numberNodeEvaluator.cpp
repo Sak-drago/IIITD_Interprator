@@ -56,5 +56,6 @@ Data evaluateNumberNode(const Node* NUMBER_NODE, const char* NAME)
   std::string       name        = NAME ? std::string(NAME) : "anonymous_number_" + std::to_string(anonymousVarCount++);
   Data* pointer                 = createVariable(name, numberType);
   assign(number, numberType, pointer->memory);
+  
   return *pointer;
 }

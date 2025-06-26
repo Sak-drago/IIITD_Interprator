@@ -21,15 +21,17 @@ Data evaluate(const Node* NODE, const char* NAME)
 //    case NODE_TYPE_ASSIGNMENT               : return evaluateAssignmentNode (NODE, NAME);
     case NODE_TYPE_VARIABLE                 : return evaluateVariableNode   (NODE);
     case NODE_TYPE_IF                       : return evaluateIfNode         (NODE);
+    //case NODE_TYPE_FUNCTION                 : return evaluateFunctionNode(NODE, NAME);
     default : raiseException(std::string("Type not handled yet : " + std::string(getNodeString((Node*) NODE).c_str())).c_str());
     exit(1);
   }
 }
 
 
-// - - - IO functions - - - 
+// - - - IO functions - - -
+
 void raiseException(const char* EXCEPTION) { FORGE_LOG_ERROR("Exception raised:\t%s", EXCEPTION); }
-void say(const char* MESSAGE)
+void bol(const char* MESSAGE)
 {
   FORGE_ASSERT_MESSAGE(MESSAGE, "Cannot print a NULL Message");
   static u64 written = 0;
@@ -46,11 +48,16 @@ void say(const char* MESSAGE)
 bool createRuntime()
 {
   if (!openFile("output.txt", FILE_MODE_WRITE, false, &runtime.output)) return false;
+
   startGarbageCollector(1);
+
   runtime.variables.clear();
   createLinearAllocator(1024 * 8, 0, NULL, &runtime.stack);
 
-  say("IIIT-D Language (v1.0.0): by Just Somebody and Sakshat Sachdeva\n\n\n");
+
+  bol("IIIT-D Language (v1.0.0): by Just Somebody and Sakshat Sachdeva\n\n\n");
+
+
   return true;
 }
 
@@ -89,7 +96,7 @@ Data* createVariable(std::string& NAME, DataType TYPE)
 {
   FORGE_ASSERT_MESSAGE(runtime.variables.find(NAME) == runtime.variables.end(), "Variable already exists");
   FORGE_ASSERT_MESSAGE(TYPE < DATA_TYPE_COUNT, "Unlawful data types");
-  
+
   runtime.variables[NAME]       = 
                                 {
                                   .type     = TYPE,

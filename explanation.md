@@ -71,7 +71,7 @@ Data evaluate(const Node* NODE, const char* NAME)
 ## Evaluation of Nodes-
 ### Variable Node Evaluation-
 * find the variable in the map
-* if found, return teh data, remember the map is **name->variable** i.e. **string->Data**
+* if found, return the data, remember the map is **name->variable** i.e. **string->Data**
 * if not found, raiseException
 
 ### If Node Evaluation-

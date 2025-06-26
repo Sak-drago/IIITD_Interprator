@@ -139,7 +139,7 @@ Data evaluateBinaryNode(const Node* BINARY_NODE, const char* NAME)
       case Bool      :     {i8  rVal = *((i8*)right.memory);  HANDLE_OP(LTYPE, i8);  break;} \
       case Integer   :     {i64 rVal = *((i64*)right.memory); HANDLE_OP(LTYPE, i64); break;} \
       case Float     :     {f64 rVal = *((f64*)right.memory); HANDLE_OP(LTYPE, f64); break;} \
-      default: raiseException("Operation on " #LTYPE " and a non-number Node is undefined");\
+      default       : raiseException("Operation on " #LTYPE " and a non-number Node is undefined");\
     } \
     break;
 
@@ -163,7 +163,7 @@ Data evaluateBinaryNode(const Node* BINARY_NODE, const char* NAME)
     }
     case Integer    : { i64 lVal  = *((i64*)left.memory);  HANDLE_BINARY_OP(i64) ; break;}
     case Float      : { f64 lVal  = *((f64*)left.memory);  HANDLE_BINARY_OP(f64) ; break;}
-    default : raiseException("Operation not defined between a number and a non-number");
+    default         : raiseException("Operation not defined between a number and a non-number");
   }
 
   return *pointer;

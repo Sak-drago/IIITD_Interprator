@@ -78,16 +78,16 @@ int readIdentifier(const char* TOKEN, int START)
 // - - - Look up table for Keywords - - -
 std::unordered_map<std::string, TokenType> keywords = 
 {
-  {"agar", IF},
-  {"ya", ELSE},
-  {"for", FOR},
-  {"while", WHILE},
-  {"return", RETURN},  
-  {"Plag", PLAG},
-  {"dac",  DAC},
-  {"real", TRUE},
-  {"cap", FALSE},
-  {"Fn", FUNCTION},
+  {"agar",    IF},
+  {"ya",      ELSE},
+  {"for",     FOR},
+  {"while",   WHILE},
+  {"return",  RETURN},  
+  {"Plag",    PLAG},
+  {"dac",     DAC},
+  {"real",    TRUE},
+  {"cap",     FALSE},
+  {"Fn",      FUNCTION},
 };
 
 TokenType lookUpKeywords(std::string &iden)

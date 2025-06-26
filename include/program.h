@@ -52,12 +52,12 @@ typedef struct Data
 
 typedef struct Program
 {
-  std::unordered_map<std::string, Data> variables;
-  std::vector<Node*>                    statements;
-  std::vector<Node*>                    functionDefined;
-  LinearAllocator                       stack;
-  LinearAllocator                       allocator;
-  File                                  output;
+  std::unordered_map<std::string, Data>     variables;
+  std::vector<Node*>                        statements;
+  std::unordered_map<std::string, Node*>    functionDefined;
+  LinearAllocator                           stack;
+  LinearAllocator                           allocator;
+  File                                      output;
 } Program;
 
 

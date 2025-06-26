@@ -24,7 +24,7 @@ Data          evaluatePrefixNode      (const Node* PREFIX_NODE,     const char* 
 Data          evaluateBooleanNode     (const Node* BOOLEAN_NODE,    const char* NAME);
 Data          evaluatePrefixNode      (const Node* PREFIX_NODE,     const char* NAME);
 Data          evaluateIfNode          (const Node* IF_NODE);
-Data          evaluateFunctionNode    (const Node* FUNCTION_NODE,   const char* NAME);
+Data          evaluateFunctionNode    (const Node* FUNCTION_NODE);
 
 // WARN:- - - @brief : not fully fleshed out yet
 void          raiseException(const char* EXCEPTION);
