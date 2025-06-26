@@ -1,15 +1,15 @@
-#pragma once 
+#pragma once
 #include "../defines.h"
 #include "../library/include/linearAlloc.h"
 #include "../library/include/filesystem.h"
 #include "../include/garbageCollector.h"
 #include "ast.h"
 #include <queue>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 
-// - - - Structs and Enums - - - 
+// - - - Structs and Enums - - -
 
 // - - - @brief : All the ways that the program can fail
 typedef enum ExitMessage
@@ -46,7 +46,7 @@ typedef struct Data
 {
   DataType type;
   void*    memory;
-  i32      refCount; 
+  i32      refCount;
 } Data;
 
 
@@ -54,14 +54,14 @@ typedef struct Program
 {
   std::unordered_map<std::string, Data>     variables;
   std::vector<Node*>                        statements;
-  std::unordered_map<std::string, Node*>    functionDefined;
+  std::map<std::string, Node*>              functionDefined;
   LinearAllocator                           stack;
   LinearAllocator                           allocator;
   File                                      output;
 } Program;
 
 
-// - - - Functions - - - 
+// - - - Functions - - -
 
 // - - - @brief : returns a string representation of the Data Type
 FORGE_API std::string   getDataTypeStr          (const DataType DATA_TYPE);

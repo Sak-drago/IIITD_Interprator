@@ -21,7 +21,7 @@ Token makeToken(const char* TOKEN, int START, int END, TokenType TYPE)
 }
 
 // - - - helper function to get string representation of token Type
-const std::string tokenNames[TOKEN_TYPES_COUNT] = 
+const std::string tokenNames[TOKEN_TYPES_COUNT] =
 {
   "ILLEGAL",
   "NUMBER",
@@ -54,6 +54,7 @@ const std::string tokenNames[TOKEN_TYPES_COUNT] =
   "RETURN",
   "FUNCTION",
   "COMMA",
+  "FUNCTION_CALL",
 };
 
 const std::string getTokenTypeString(TokenType TYPE)
@@ -67,22 +68,22 @@ std::locale alphaChar;
 
 int readIdentifier(const char* TOKEN, int START)
 {
-  while (std::isalpha(TOKEN[START], alphaChar) || std::isdigit(TOKEN[START])) 
+  while (std::isalpha(TOKEN[START], alphaChar) || std::isdigit(TOKEN[START]) || TOKEN[START] == '(' || TOKEN[START] == ')')
   {
-    START++; 
+    START++;
   }
   int end = START;
   return end;
-} 
+}
 
 // - - - Look up table for Keywords - - -
-std::unordered_map<std::string, TokenType> keywords = 
+std::unordered_map<std::string, TokenType> keywords =
 {
   {"agar",    IF},
   {"ya",      ELSE},
   {"for",     FOR},
   {"while",   WHILE},
-  {"return",  RETURN},  
+  {"return",  RETURN},
   {"Plag",    PLAG},
   {"dac",     DAC},
   {"real",    TRUE},
@@ -118,16 +119,16 @@ std::vector<Token> tokenize(const char* SRC_CODE)
     switch (currentChar)
     {
       case ' ' :
-      case '\t':  
+      case '\t':
         current++;
         break;
 
       // - - - OPEN_PARANTHESIS
       case '(':
         tokens.push_back(makeToken(
-              SRC_CODE,     
-              current, 
-              current + 1, 
+              SRC_CODE,
+              current,
+              current + 1,
               OPEN_PARANTHESIS));
         current++;
         break;
@@ -135,9 +136,9 @@ std::vector<Token> tokenize(const char* SRC_CODE)
       // - - - CLOSE_PARANTHESIS
       case ')':
         tokens.push_back(makeToken(
-              SRC_CODE,     
-              current, 
-              current + 1, 
+              SRC_CODE,
+              current,
+              current + 1,
               CLOSE_PARANTHESIS));
         current++;
         break;
@@ -145,33 +146,33 @@ std::vector<Token> tokenize(const char* SRC_CODE)
       // - - - OPEN_BRACE
       case '{':
         tokens.push_back(makeToken(
-              SRC_CODE,     
-              current, 
-              current + 1, 
+              SRC_CODE,
+              current,
+              current + 1,
               OPEN_BRACE));
         current++;
         break;
-      
+
       // - - - CLOSE_BRACE
       case '}':
         tokens.push_back(makeToken(
-              SRC_CODE,     
-              current, 
-              current + 1, 
+              SRC_CODE,
+              current,
+              current + 1,
               CLOSE_BRACE));
         current++;
         break;
-      
+
       // - - - COMMA
       case ',':
         tokens.push_back(makeToken(
-              SRC_CODE,     
-              current, 
-              current + 1, 
+              SRC_CODE,
+              current,
+              current + 1,
               COMMA));
         current++;
         break;
-        
+
       // - - - ASSIGN OR EQUALS
       case '=':
         switch(src[current + 1])
@@ -179,9 +180,9 @@ std::vector<Token> tokenize(const char* SRC_CODE)
           // - - - Two == in a row means equal
           case '=':
             tokens.push_back(makeToken(
-              SRC_CODE,     
-              current, 
-              current + 2, 
+              SRC_CODE,
+              current,
+              current + 2,
               EQUALS));
             current += 2;
             break;
@@ -189,9 +190,9 @@ std::vector<Token> tokenize(const char* SRC_CODE)
           // - - - just one = means assign
           default:
             tokens.push_back(makeToken(
-              SRC_CODE,     
-              current, 
-              current + 1, 
+              SRC_CODE,
+              current,
+              current + 1,
               ASSIGN));
             current++;
             break;
@@ -204,24 +205,24 @@ std::vector<Token> tokenize(const char* SRC_CODE)
           // - - -  != in a row means not equal
           case '=':
             tokens.push_back(makeToken(
-              SRC_CODE,     
-              current, 
-              current + 2, 
+              SRC_CODE,
+              current,
+              current + 2,
               NOT_EQUALS));
             current += 2;
             break;
 
-          // - - - just one ! means not 
+          // - - - just one ! means not
           default:
             tokens.push_back(makeToken(
-              SRC_CODE,     
-              current, 
-              current + 1, 
+              SRC_CODE,
+              current,
+              current + 1,
               NOT));
             current++;
             break;
         }
-        break;     
+        break;
 
       //- - - Greater Than Operators
       case '<':
@@ -278,18 +279,24 @@ std::vector<Token> tokenize(const char* SRC_CODE)
       case '^':
       case '%':
         tokens.push_back(makeToken(
-              SRC_CODE,     
-              current, 
-              current + 1, 
+              SRC_CODE,
+              current,
+              current + 1,
               BINARY_OPERATOR));
         current++;
         break;
 
-      default : 
+      default :
         if(std::isalpha(currentChar,alphaChar)){
           int updatePosition = readIdentifier(SRC_CODE, current);
           std::string idetinfier(SRC_CODE+current, updatePosition-current);
           TokenType currTokenType = lookUpKeywords(idetinfier);
+          if(idetinfier.size() > 2 && idetinfier.substr(idetinfier.size()-2, 2) == "()"){
+              // - - - If the string ends with () and the token before it is not function then it is a function call
+              if(tokens.empty() == true || tokens.back().type != FUNCTION){
+                  currTokenType = FUNCTION_CALL;
+              }
+          }
           tokens.push_back(makeToken(
                 SRC_CODE,
                 current,
@@ -297,19 +304,19 @@ std::vector<Token> tokenize(const char* SRC_CODE)
                 currTokenType));
           current = updatePosition;
         }
-        else if (std::isdigit(currentChar)) 
+        else if (std::isdigit(currentChar))
         {
           // - - - Handle numbers
           int startNumber = current;
-          while (std::isdigit(src[current])) 
+          while (std::isdigit(src[current]))
           {
             current++;
           }
           // - - - Check for floating-point numbers
-          if (src[current] == '.' && std::isdigit(src[current + 1])) 
+          if (src[current] == '.' && std::isdigit(src[current + 1]))
           {
             current++; // - - - Consume '.'
-            while (std::isdigit(src[current])) 
+            while (std::isdigit(src[current]))
             {
                 current++;
             }
