@@ -21,7 +21,7 @@ Data evaluate(const Node* NODE, const char* NAME)
 //    case NODE_TYPE_ASSIGNMENT               : return evaluateAssignmentNode (NODE, NAME);
     case NODE_TYPE_VARIABLE                 : return evaluateVariableNode   (NODE);
     case NODE_TYPE_IF                       : return evaluateIfNode         (NODE);
-    //case NODE_TYPE_FUNCTION                 : return evaluateFunctionNode(NODE, NAME);
+    case NODE_TYPE_FUNCTION                 : return evaluateFunctionNode(NODE);
     default : raiseException(std::string("Type not handled yet : " + std::string(getNodeString((Node*) NODE).c_str())).c_str());
     exit(1);
   }
@@ -55,6 +55,7 @@ bool createRuntime()
   createLinearAllocator(1024 * 8, 0, NULL, &runtime.stack);
 
 
+  // - - - insert the functions 
   bol("IIIT-D Language (v1.0.0): by Just Somebody and Sakshat Sachdeva\n\n\n");
 
 

@@ -103,7 +103,7 @@ Data evaluate(const Node* NODE, const char* NAME)
 
 
 **The rest are not implemented yet, but here is the basic plan-**
-### Function Nodes
+### Function Nodes [IMPLEMENTED]
 * Differentiate between function defs and function calls
 * when creating the runtime, make a map of function names to function nodes,
 * Add to this map, language given functions like bolo and puucho (printf and scanf of our lang)
@@ -135,4 +135,3 @@ eg :
 
 
 ## After done, we make garbage collection multithreaded and tokenizer, parser end evaluator mulithreaded
-
