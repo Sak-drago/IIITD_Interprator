@@ -36,6 +36,7 @@ typedef enum NodeType
   NODE_TYPE_BOOLEAN,                    // - - - true/false
   NODE_TYPE_IF,                         // - - - if  
   NODE_TYPE_FUNCTION,                   // - - - function
+  NODE_TYPE_FUNCTION_CALL,              // - - - function call node
   NODE_TYPE_COUNT                       // - - - keep a count of all type of nodes
 } NodeType;
 
@@ -101,6 +102,13 @@ typedef union NodeContext
     std::vector<FunctionParameter>  parameters;
     struct Block*                   body;
   } functionContext;
+
+  struct
+  {
+      const char*                       name;
+      std::vector<FunctionParameter>    parameters;
+  } functionCallContext;
+
 } NodeContext;
 
 // - - - the mighty ast node
@@ -138,6 +146,8 @@ FORGE_API bool        initPrefixNode          (Node* NODE, const char* OPERATOR,
 FORGE_API bool        initIfNode              (Node* NODE, Node* CONDITION, Block* CONSEQUENCE, Block* ALTERNATIVE);
 
 FORGE_API bool        initFunctionNode        (Node* NODE, const char* NAME ,std::vector<FunctionParameter> PARAMETERS, Block* BODY);
+
+FORGE_API bool        initFunctionCallNode        (Node* NODE, const char* Name, std::vector<FunctionParameter> PARAMETERS);
 
 // - - - print a node
 FORGE_API std::string getNodeTypeString       (NodeType TYPE);

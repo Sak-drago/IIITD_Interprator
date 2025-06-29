@@ -4,6 +4,8 @@
 #include "../library/include/logger.h"
 #include "../include/tokenizer.h"
 #include "../include/tokens.h"
+#include <csignal>
+#include <cstddef>
 #include <vector>
 #include <bits/algorithmfwd.h>
 
@@ -499,7 +501,7 @@ Node* parseFunctionLiteral(void* ARG)
 
   if (!match(OPEN_PARANTHESIS))
   {
-    FORGE_LOG_ERROR("Syntax Error: expected an Open Bracket in Function");
+    FORGE_LOG_ERROR("Syntax Error: expected an Open Bracket in Function, recieved %s", input->at(tokenIndex-1).literal.c_str());
     exit(1);
   }
 
@@ -524,6 +526,36 @@ Node* parseFunctionLiteral(void* ARG)
   initFunctionNode((Node*)ARG, fnName.c_str(), fnLit, fnBody);
   program->functionDefined[fnName]  = (Node*)ARG;
   return (Node*)ARG;
+}
+
+// - - - Parse Function Call
+
+Node* parseFunctionCall(void* ARG)
+{
+    std::string funcName = input->at(tokenIndex).literal;
+    auto        itr      = program->functionDefined.find(funcName);
+    if(itr == program->functionDefined.end())
+    {
+       FORGE_LOG_ERROR("Syntax error: function called but has never been declared or defined.");
+       exit(1);
+    }
+    if(itr->second->context.functionContext.body == NULL)
+    {
+        FORGE_LOG_ERROR("Syntax error: function called but has never been defined. Please define it first.");
+        exit(1);
+    }
+    // - - - shifting to open bracket
+    tokenIndex++;
+    std::vector<FunctionParameter> fnLit;
+    if (!match(OPEN_PARANTHESIS))
+    {
+       FORGE_LOG_ERROR("Syntax Error: expected an Open Bracket in Function Call, found %s", input->at(tokenIndex).literal.c_str());
+       exit(1);
+    }
+
+    fnLit = parseFunctionParams();
+    initFunctionCallNode(static_cast<Node*>(ARG), funcName.c_str(), fnLit);
+    return static_cast<Node*>(ARG);
 }
 
 // - - - AST Creation Function
@@ -552,6 +584,9 @@ void produceAST(std::vector<Token>* TOKENS, Program* PROGRAM)
     registerPrefix(OPEN_PARANTHESIS,  parseGroupedExpress);
     registerPrefix(IF,                parseIfExpression);
     registerPrefix(FUNCTION,          parseFunctionLiteral);
+    registerPrefix(FUNCTION_CALL,     parseFunctionCall);
+    // Need to figure this out
+    // - - - registerPrefix(FUNCTION_CALL,     parse)
 
     // - - - infixes
     registerInfix(EQUALS,             parseInfixExpression);

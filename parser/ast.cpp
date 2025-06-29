@@ -21,7 +21,7 @@ std::string getNodeID(Node* node) {
 bool initNumberNode(Node* NODE, std::string& NUMBER)
 {
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST Number Node");
-  
+
   NODE->type                        = NODE_TYPE_NUMBER;
   NODE->context.numberContext.value = strdup(NUMBER.c_str());
 
@@ -40,7 +40,7 @@ bool initBoolNode(Node* NODE, bool VALUE)
   return true;
 }
 
-// - - - initialize a binary opeartor node 
+// - - - initialize a binary opeartor node
 bool initBinaryOpNode(Node* NODE, Node* LEFT_NODE, Node* RIGHT_NODE, BinaryOperator OPCODE)
 {
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST Binary Operation Node");
@@ -58,7 +58,7 @@ bool initBinaryOpNode(Node* NODE, Node* LEFT_NODE, Node* RIGHT_NODE, BinaryOpera
     FORGE_LOG_ERROR("Right Node is NULL. Failed to intialize");
     return false;
   }
-  
+
   NODE->context.binaryContext.left      = LEFT_NODE;
   NODE->context.binaryContext.right     = RIGHT_NODE;
   NODE->context.binaryContext.opcode    = OPCODE;
@@ -66,15 +66,15 @@ bool initBinaryOpNode(Node* NODE, Node* LEFT_NODE, Node* RIGHT_NODE, BinaryOpera
   return true;
 }
 
-// - - - initialize a variable node 
+// - - - initialize a variable node
 bool initVariableNode(Node* NODE, std::string& NAME)
 {
   FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialize a NULL AST Variable Node");
 
-  // - - - TODO @Sakshat : Not sure, but maybe you might want to check for a keyword use a variable name syntax error somewhere  
-  
+  // - - - TODO @Sakshat : Not sure, but maybe you might want to check for a keyword use a variable name syntax error somewhere
+
   // - - - TODO - Check if variable has not been already initalized.
-  
+
   NODE->type                            = NODE_TYPE_VARIABLE;
   NODE->context.variableContext.name    = strdup(NAME.c_str());
 
@@ -169,7 +169,17 @@ bool initFunctionNode(Node* NODE, const char* NAME, std::vector<FunctionParamete
 }
 
 
-// - - - Print Nodes - - - 
+bool initFunctionCallNode(Node* NODE, const char* NAME, std::vector<FunctionParameter> PARAMETERS)
+{
+    FORGE_ASSERT_MESSAGE(NODE != NULL, "Cannot initialise a NULL AST Function Call Node");
+
+    NODE->type                                      = NODE_TYPE_FUNCTION_CALL;
+    NODE->context.functionCallContext.name          = strdup(NAME);
+    NODE->context.functionCallContext.parameters    = PARAMETERS;
+
+    return true;
+}
+// - - - Print Nodes - - -
 
 std::string getNodeTypeString(NodeType TYPE)
 {
@@ -184,6 +194,7 @@ std::string getNodeTypeString(NodeType TYPE)
     case NODE_TYPE_IF               : return "NODE_TYPE_IF";
     case NODE_TYPE_PREFIX           : return "NODE_TYPE_PREFIX";
     case NODE_TYPE_FUNCTION         : return "NODE_TYPE_FUNCTION";
+    case NODE_TYPE_FUNCTION_CALL    : return "NODE_TYPE_FUNCTION_CALL";
 
     default                         : FORGE_ASSERT_MESSAGE(true, "Tu yahan tak aaya kaise bhai. Agar likha hai maine ki it is to keep a count of all types of variables. It is not a type of Node itself.");
   }
@@ -277,7 +288,7 @@ std::string getNodeString(Node* NODE, i8 INDENTATION_LEVEL)
         case NODE_TYPE_IF:
             retVal += "\n\t" + indent + "Condition : "      + getNodeString(NODE->context.ifContext.condition, INDENTATION_LEVEL + 1);
             retVal += "\n\tConsequence : "                + getBlockString(NODE->context.ifContext.consequence->statements);
-            if (NODE->context.ifContext.alternative && NODE->context.ifContext.alternative->statements.size()>0) 
+            if (NODE->context.ifContext.alternative && NODE->context.ifContext.alternative->statements.size()>0)
             {
               retVal += "\n\tAlternative : "              + getBlockString(NODE->context.ifContext.alternative->statements);
             }
@@ -291,9 +302,19 @@ std::string getNodeString(Node* NODE, i8 INDENTATION_LEVEL)
                 FORGE_LOG_DEBUG("Current parameter : %s", NODE->context.functionContext.parameters[i].name);
                 retVal += "\n\t\t" + std::string(NODE->context.functionContext.parameters[i].name);
             }
-            if(NODE->context.functionContext.body!= nullptr) 
-            { 
+            if(NODE->context.functionContext.body!= nullptr)
+            {
               retVal += "\n\tBody : " + getBlockString(NODE->context.functionContext.body->statements);
+            }
+            break;
+
+        case NODE_TYPE_FUNCTION_CALL:
+            retVal+= "\n\tName: ";
+            retVal+= "\n\tParameters: ";
+            for (u64 i = 0; i < NODE->context.functionContext.parameters.size(); i++)
+            {
+                FORGE_LOG_DEBUG("Current parameter : %s", NODE->context.functionContext.parameters[i].name);
+                retVal += "\n\t\t" + std::string(NODE->context.functionContext.parameters[i].name);
             }
             break;
 

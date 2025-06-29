@@ -2,6 +2,7 @@
 #include "../library/include/asserts.h"
 #include "../library/include/logger.h"
 #include "../library/include/filesystem.h"
+#include <cstring>
 #include <vector>
 #include <string>
 #include <locale>
@@ -68,7 +69,7 @@ std::locale alphaChar;
 
 int readIdentifier(const char* TOKEN, int START)
 {
-  while (std::isalpha(TOKEN[START], alphaChar) || std::isdigit(TOKEN[START]) || TOKEN[START] == '(' || TOKEN[START] == ')')
+  while (std::isalpha(TOKEN[START], alphaChar) || std::isdigit(TOKEN[START]))
   {
     START++;
   }
@@ -291,7 +292,7 @@ std::vector<Token> tokenize(const char* SRC_CODE)
           int updatePosition = readIdentifier(SRC_CODE, current);
           std::string idetinfier(SRC_CODE+current, updatePosition-current);
           TokenType currTokenType = lookUpKeywords(idetinfier);
-          if(idetinfier.size() > 2 && idetinfier.substr(idetinfier.size()-2, 2) == "()"){
+          if(updatePosition+1 < strlen(SRC_CODE) && SRC_CODE[updatePosition] == '('){
               // - - - If the string ends with () and the token before it is not function then it is a function call
               if(tokens.empty() == true || tokens.back().type != FUNCTION){
                   currTokenType = FUNCTION_CALL;
