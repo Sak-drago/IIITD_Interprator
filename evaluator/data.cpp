@@ -24,15 +24,10 @@ std::string getDataTypeStr   (DataType DATA_TYPE)
   }
 }
 
-std::string getDataStr        (const Data* DATA)
+std::string getDataValueStr(const Data* DATA)
 {
-  FORGE_ASSERT_MESSAGE(DATA, "Cannot print NULL data");
-
   std::ostringstream stringBuilder;
-  stringBuilder << "\n{\n  DataType  : "  << getDataTypeStr(DATA->type);
-  stringBuilder <<  "\n  Address   : "    << std::hex << DATA->memory;
-  stringBuilder <<  "\n  Value     : ";
-
+  
   switch (DATA->type)
   {
     case Integer  : stringBuilder << std::to_string((i64) *static_cast<const i64*>   (DATA->memory));      break;
@@ -40,8 +35,21 @@ std::string getDataStr        (const Data* DATA)
     case Bool     : stringBuilder << ((bool) *static_cast<const bool*>(DATA->memory) ? "real" : "cap");    break;
     case Plag     : stringBuilder << getDataStr((Data*) DATA->memory);                                     break;
     case Null     : stringBuilder << "Null";                                                               break;
+    default       : TODO
   }
-  stringBuilder << "\n}";
+
+  return stringBuilder.str();
+}
+
+std::string getDataStr        (const Data* DATA)
+{
+  FORGE_ASSERT_MESSAGE(DATA, "Cannot print NULL data");
+
+  std::ostringstream stringBuilder;
+  stringBuilder << "\n{\n  DataType  : "  << getDataTypeStr(DATA->type);
+  stringBuilder <<  "\n  Address   : "    << std::hex << DATA->memory;
+  stringBuilder <<  "\n  Value     : "    << getDataValueStr(DATA);
+
   return stringBuilder.str();
 }
 

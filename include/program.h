@@ -69,6 +69,9 @@ FORGE_API std::string   getDataTypeStr          (const DataType DATA_TYPE);
 // - - - @brief : returns a string representation of the Data
 FORGE_API std::string   getDataStr              (const Data* DATA);
 
+// - - - @brief : returns a string representation of the Data value
+FORGE_API std::string   getDataValueStr         (const Data* DATA);
+
 // - - - @brief : returns how many bytes are needed to store the Data Type
 FORGE_API i8            getDataTypeSize         (const DataType DATA_TYPE);
 
