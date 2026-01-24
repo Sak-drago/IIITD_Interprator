@@ -1,0 +1,15 @@
+<map id="include/utils/logger.hpp" name="include/utils/logger.hpp">
+<area shape="rect" id="Node000001" title="Simple colored console logger." alt="" coords="121,5,294,31"/>
+<area shape="rect" id="Node000002" href="$defines_8hpp.html" title="Basic file to include in every other header/source file." alt="" coords="5,152,153,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,38,133,56,107,80,96,98,89,118,83,152,77,151,84,116,91,96,103,77,130,52,161,34"/>
+<area shape="rect" id="Node000003" href="$asserts_8hpp.html" title="Asserts and TODOs." alt="" coords="117,79,297,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="210,44,210,79,205,79,205,44"/>
+<area shape="rect" id="Node000006" href="$testManager_8hpp.html" title="Simple test harness made with linux in mind (no crash detection, parallelism on windows)" alt="" coords="321,79,536,104"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="256,32,394,76,392,81,255,37"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="176,113,102,154,99,149,173,108"/>
+<area shape="rect" id="Node000004" href="$library_8cpp.html" title=" " alt="" coords="178,152,290,177"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="219,116,232,151,227,153,214,118"/>
+<area shape="rect" id="Node000005" href="$testManager_8cpp.html" title=" " alt="" coords="325,152,511,177"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="255,106,385,149,383,154,253,111"/>
+<area shape="poly" id="edge7_Node000006_Node000005" title=" " alt="" coords="428,118,422,152,417,151,422,117"/>
+</map>

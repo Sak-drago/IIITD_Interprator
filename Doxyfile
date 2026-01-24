@@ -1,0 +1,10 @@
+PROJECT_NAME           = "Pdf2Fountain"
+OUTPUT_DIRECTORY       = docs
+USE_MDFILE_AS_MAINPAGE = README.md
+INPUT                  = include/ src/ README.md
+RECURSIVE              = YES
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+OPTIMIZE_OUTPUT_FOR_C  = YES
+EXTRACT_ALL            = YES
+FILE_PATTERNS          = *.hpp *.cpp

@@ -1,0 +1,16 @@
+<map id="include/defines.hpp" name="include/defines.hpp">
+<area shape="rect" id="Node000001" title="Basic file to include in every other header/source file." alt="" coords="198,5,346,31"/>
+<area shape="rect" id="Node000002" href="$logger_8hpp.html" title="Simple colored console logger." alt="" coords="5,152,128,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,31,106,50,68,64,45,80,39,94,40,109,52,139,48,141,34,110,34,93,41,77,65,59,104,45,197,26"/>
+<area shape="rect" id="Node000004" href="$asserts_8hpp.html" title="Asserts and TODOs." alt="" coords="54,79,183,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="248,33,157,75,155,70,246,28"/>
+<area shape="rect" id="Node000005" href="$bitwise_8hpp.html" title="Simple bitwise macros." alt="" coords="207,79,337,104"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="275,31,275,65,269,65,269,31"/>
+<area shape="rect" id="Node000006" href="$dataTypes_8hpp.html" title="Common data types." alt="" coords="361,79,509,104"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="299,28,397,71,394,75,297,33"/>
+<area shape="rect" id="Node000007" href="$profiler_8hpp.html" title=" " alt="" coords="533,79,659,104"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="325,28,531,73,530,78,323,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="27,225,107,251"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="69,178,69,212,64,212,64,178"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="112,106,85,142,81,139,108,103"/>
+</map>
