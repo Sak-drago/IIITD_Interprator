@@ -1,4 +1,4 @@
-#include "utils/logger.hpp"
+#include <utils/asserts.hpp>
 #include <utils/testManager.hpp>
 
 #ifndef DEBUG

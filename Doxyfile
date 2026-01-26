@@ -1,4 +1,4 @@
-PROJECT_NAME           = "Pdf2Fountain"
+PROJECT_NAME           = "IIIT Interpreter"
 OUTPUT_DIRECTORY       = docs
 USE_MDFILE_AS_MAINPAGE = README.md
 INPUT                  = include/ src/ README.md
