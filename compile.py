@@ -6,7 +6,7 @@ import shutil
 import os
 
 parser = argparse.ArgumentParser(description="Build Script")
-parser.add_argument("target", nargs='?', choices=["Library", "Example", "Tests", "Doc", "All"], default="All")
+parser.add_argument("target", nargs='?', choices=["Src","Library", "Example", "Tests", "Doc", "All"], default="All")
 parser.add_argument("--mode", choices=["DEBUG", "RELEASE"], default="DEBUG")
 parser.add_argument("--clean", action="store_true")
 args = parser.parse_args()
@@ -48,7 +48,8 @@ if os.path.exists(source_json):
 
 # - - - Target Mapping
 t_map = {
-  "Library": "pdf2fountain",
+  "Src"  :  "build_src",
+  "Library": "build_virtualMachine",
   "Example": "build_examples",
   "Tests": "build_tests",
   "Doc": "build_docs",

@@ -2,26 +2,50 @@
 #define iiit_CHUNK_HPP
 
 #include "common.hpp"
+// - - - HELPER FUNCTIONS:
+// - - - NOTE: 4 cases, none-> non-zero, non-zero -> none, non-zero -> smaller, non-zero -> bigger 
+static inline void* reallocate(void* mPOINTER, size_t mOLDCOUNT, size_t mNEWCOUNT){
+ if(mNEWCOUNT == 0)
+ {
+  free(mPOINTER);
+  return nullptr;
+ }
+ 
+ void* _result = realloc(mPOINTER, mNEWCOUNT);
+ // - - - Incase we run out of memory
+ if(_result == nullptr){std::cerr << "\033[32m NOT ENOUGH MEMORY AT REALLOC for:" << mPOINTER << "\033[0m"; exit(1);}
+ return _result;
+}
 
-// - - - I would avoid 1.5 since I am NOT WORKING WITH FLOATS
-#define _GROW_CAPACITY(mCAPACITY) \
- ((mCAPACITY) < 8 ? 8 : (mCAPACITY) * 2)
+// - - - Dynamic Array Helpers
+// NOTE: I would avoid 1.5 since I am NOT WORKING WITH FLOATS
+static inline int _GROW_CAPACITY(size_t mCAPACITY){return ((mCAPACITY) < 8 ? 8 : (mCAPACITY) * 2);}
 
-#define _GROW_VEC(mTYPE, mPOINTER, mOLDCOUNT, mNEWCOUNT)
+template  <typename T>
+static inline T* _GROW_VEC(T* mPOINTER, size_t mOLDCOUNT, size_t mNEWCOUNT){ return static_cast<T*>(reallocate(mPOINTER, sizeof(T)* mOLDCOUNT, sizeof(T)* mNEWCOUNT));}
+
+template <typename T>
+static inline T* _FREE_VEC(T* mPOINTER, size_t mOLDCOUNT){return static_cast<T*>(reallocate(mPOINTER, sizeof(T*)*mOLDCOUNT, 0));}
+
 // - - - Defining the byte structure here.
-typedef enum{
- OP_RETURN,
-} OpCode;
+class _VirtualMachine{
+public:
+ typedef enum{
+  OP_RETURN,
+ } OpCode;
 
 // - - - Defining the chunk structure here. Need to make it dynamic!
-struct _CHUNK{
- size_t mCOUNT;   // - - -Using size_t instead of u32 or something because I don't know platforms my guy
- size_t mCAPACITY;
- u8* mCODE;
+ struct _CHUNK{
+  size_t mCOUNT;   // - - -Using size_t instead of u32 or something because I don't know platforms my guy
+  size_t mCAPACITY;
+  u8* mCODE;
 
- _CHUNK();
- void _writeCHUNK(u8 _BYTE);
+  // - - - Functions to manage _CHUNK
+  _CHUNK();
+  void _writeCHUNK(u8 _BYTE);
+  void _freeCHUNK();
+ };
+
 };
-
-using CHUNK = struct _CHUNK;
+using CHUNK = struct _VirtualMachine::_CHUNK;
 #endif
