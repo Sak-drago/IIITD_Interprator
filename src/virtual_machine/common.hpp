@@ -1,5 +1,5 @@
-#ifndef iiit_common_hpp
-#define iiit_common_hpp
+#ifndef iiit_COMMON_HPP
+#define iiit_COMMON_HPP
 
 #include <iostream>
 #include <string>

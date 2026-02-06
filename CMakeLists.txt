@@ -32,6 +32,8 @@ endif()
 # - - - Library
 # Core interpreter logic (NO main.cpp here)
 add_library(interprator 
+  src/virtual_machine/disassembler.cpp
+  src/virtual_machine/instructions.cpp
   src/virtual_machine/chunk.cpp
   src/library.cpp
   src/utils/profiler.cpp

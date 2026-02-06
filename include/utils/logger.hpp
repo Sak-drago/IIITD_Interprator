@@ -38,7 +38,8 @@
 #define LOG_ERROR(x)   std::cerr << LOG_COLOR_ERROR   "[ERROR] "   << x << LOG_COLOR_RESET << '\n';
 #ifdef DEBUG
   #define LOG_WARNING(x) std::cerr << LOG_COLOR_WARNING "[WARNING] " << x << LOG_COLOR_RESET << '\n'
-  #define LOG_INFO(x)    std::cout << LOG_COLOR_INFO    "[INFO] "    << x << LOG_COLOR_RESET << '\n'
+  // - - - I wanted INFO to not have newline for me so changed it.
+  #define LOG_INFO(x)    std::cout << LOG_COLOR_INFO    "[INFO] "    << x << LOG_COLOR_RESET;
   #define LOG_DEBUG(x)   std::cout << LOG_COLOR_DEBUG   "[DEBUG] "   << x << LOG_COLOR_RESET << '\n'
   #define LOG_TRACE(x)   std::cout << LOG_COLOR_TRACE   "[TRACE] "   << x << LOG_COLOR_RESET << '\n' 
 #else

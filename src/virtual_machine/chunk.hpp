@@ -44,8 +44,16 @@ public:
   _CHUNK();
   void _writeCHUNK(u8 _BYTE);
   void _freeCHUNK();
+
+  // - - -  Functions to disassemble/debug the chunk
+  void _disassembleCHUNK(const char* _NAME);
+  size_t _disassembleINSTRUCTION(size_t _OFFSET);
  };
 
+ struct _INSTRUCTION_PROCESSORS{
+  static size_t _simpleINSTRUCTION(const char* _NAME, size_t _OFFSET);
+ };
 };
 using CHUNK = struct _VirtualMachine::_CHUNK;
+using INSTRUCTION = struct _VirtualMachine::_INSTRUCTION_PROCESSORS;
 #endif
