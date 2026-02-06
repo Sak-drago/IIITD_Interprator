@@ -2,6 +2,8 @@
 #define iiit_CHUNK_HPP
 
 #include "common.hpp"
+#include "value.hpp"
+
 // - - - HELPER FUNCTIONS:
 // - - - NOTE: 4 cases, none-> non-zero, non-zero -> none, non-zero -> smaller, non-zero -> bigger 
 static inline void* reallocate(void* mPOINTER, size_t mOLDCOUNT, size_t mNEWCOUNT){
@@ -31,27 +33,33 @@ static inline T* _FREE_VEC(T* mPOINTER, size_t mOLDCOUNT){return static_cast<T*>
 class _VirtualMachine{
 public:
  typedef enum{
+  OP_CONSTANT,
   OP_RETURN,
- } OpCode;
+ } _OPCODE;
 
 // - - - Defining the chunk structure here. Need to make it dynamic!
  struct _CHUNK{
   size_t mCOUNT;   // - - -Using size_t instead of u32 or something because I don't know platforms my guy
   size_t mCAPACITY;
   u8* mCODE;
+  ValueARRAY mCONSTANTS;
 
   // - - - Functions to manage _CHUNK
   _CHUNK();
   void _writeCHUNK(u8 _BYTE);
   void _freeCHUNK();
-
+  void _resetCHUNK();
   // - - -  Functions to disassemble/debug the chunk
   void _disassembleCHUNK(const char* _NAME);
   size_t _disassembleINSTRUCTION(size_t _OFFSET);
+
+  // - - - Function(s) to manipulate constants
+  i8 _addCONSTANT(Value _VALUE);
  };
 
  struct _INSTRUCTION_PROCESSORS{
   static size_t _simpleINSTRUCTION(const char* _NAME, size_t _OFFSET);
+  static size_t _constantINSTRUCTION(const char* _NAME, _CHUNK* _CHUNK ,size_t _OFFSET);
  };
 };
 using CHUNK = struct _VirtualMachine::_CHUNK;

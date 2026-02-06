@@ -8,6 +8,8 @@ size_t CHUNK::_disassembleINSTRUCTION(size_t _OFFSET)
   u8 _INSTRUCTION = this->mCODE[_OFFSET];
   switch(_INSTRUCTION)
   {
+    case _VirtualMachine::OP_CONSTANT:
+      return INSTRUCTION::_constantINSTRUCTION("OP_CONSTANT", this, _OFFSET);
     case _VirtualMachine::OP_RETURN:
       return INSTRUCTION::_simpleINSTRUCTION("OP_RETURN", _OFFSET);
     default:
