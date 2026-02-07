@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 #include <utils/dataTypes.hpp>
 #include <utils/asserts.hpp>
 #include <utils/logger.hpp>

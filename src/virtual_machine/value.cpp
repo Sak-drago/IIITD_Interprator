@@ -36,5 +36,5 @@ void ValueARRAY::_freeValueARRAY()
 
 void ValueARRAY::_printVALUE(Value _VALUE)
 {
-  std::cout << _VALUE << '\n';
+  std::cout << _VALUE << "'";
 }

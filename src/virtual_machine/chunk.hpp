@@ -42,11 +42,12 @@ public:
   size_t mCOUNT;   // - - -Using size_t instead of u32 or something because I don't know platforms my guy
   size_t mCAPACITY;
   u8* mCODE;
+  i32* mLINES;
   ValueARRAY mCONSTANTS;
 
   // - - - Functions to manage _CHUNK
   _CHUNK();
-  void _writeCHUNK(u8 _BYTE);
+  void _writeCHUNK(u8 _BYTE, u8 _LINE);
   void _freeCHUNK();
   void _resetCHUNK();
   // - - -  Functions to disassemble/debug the chunk
