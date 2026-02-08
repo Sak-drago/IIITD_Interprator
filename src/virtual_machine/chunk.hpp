@@ -32,9 +32,21 @@ static inline T* _FREE_VEC(T* mPOINTER, size_t mOLDCOUNT){return static_cast<T*>
 // - - - Defining the byte structure here.
 class _VirtualMachine{
 public:
+ // - - - Separate area for VM stuff
+ typedef enum{
+  INTERPRET_OK,
+  INTERPRET_COMPILE_ERROR,
+  INTERPRET_RUNTIME_ERROR,
+  INTERPRET_COUNT,
+ } _INTERPRET_RESULT;
+
+ void _initVM();
+ void _freeVM();
+public:
  typedef enum{
   OP_CONSTANT,
   OP_RETURN,
+  OP_COUNT,
  } _OPCODE;
 
 // - - - Defining the chunk structure here. Need to make it dynamic!
@@ -62,6 +74,18 @@ public:
   static size_t _simpleINSTRUCTION(const char* _NAME, size_t _OFFSET);
   static size_t _constantINSTRUCTION(const char* _NAME, _CHUNK* _CHUNK ,size_t _OFFSET);
  };
+ private:
+ _VirtualMachine::_CHUNK* mCHUNK;
+ u8* mINSTRUCTION_POINTER;
+
+ public:
+ _CHUNK* _getvmCHUNK(){return mCHUNK;}
+ void   _setvmCHUNK(_CHUNK* _otherCHUNK){mCHUNK = _otherCHUNK;}
+
+ u8* _getIP(){return mINSTRUCTION_POINTER;}
+ void _setIP(u8* _CODE){mINSTRUCTION_POINTER = _CODE;}
+
+ _INTERPRET_RESULT _interpretCHUNK(_CHUNK* _CHUNK);
 };
 using CHUNK = struct _VirtualMachine::_CHUNK;
 using INSTRUCTION = struct _VirtualMachine::_INSTRUCTION_PROCESSORS;
