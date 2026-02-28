@@ -4,6 +4,8 @@
 #include "common.hpp"
 #include "value.hpp"
 
+#define TOTAL_STACK_SPACE 512
+
 // - - - HELPER FUNCTIONS:
 // - - - NOTE: 4 cases, none-> non-zero, non-zero -> none, non-zero -> smaller, non-zero -> bigger 
 static inline void* reallocate(void* mPOINTER, size_t mOLDCOUNT, size_t mNEWCOUNT){
@@ -42,6 +44,8 @@ public:
 
  void _initVM();
  void _freeVM();
+ 
+ void _resetSTACK();
 public:
  typedef enum{
   OP_CONSTANT,
@@ -84,6 +88,15 @@ public:
 
  u8* _getIP(){return mINSTRUCTION_POINTER;}
  void _setIP(u8* _CODE){mINSTRUCTION_POINTER = _CODE;}
+ 
+ //NOTE: The _STACK_TOP pointer points towards +1 from the top. Not the exact top element.
+ // Default stack size is 512.
+ 
+ // - - - Stack area 
+ Value mSTACK[TOTAL_STACK_SPACE];
+ Value* mSTACK_TOP = 0;
+ void _PUSH_STACK(Value _VALUE);
+ Value _POP_STACK();
 
  _INTERPRET_RESULT _interpretCHUNK(_CHUNK* _CHUNK);
 };
