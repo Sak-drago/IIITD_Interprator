@@ -10,14 +10,24 @@ int main(){
   CHUNK t_chunk;
 
   // - - - Write to the CHUNK
-  size_t con_2 = t_chunk._addCONSTANT(3.4);
+  // - - - Testing: -((1.2 + 3.4) / 5.6)
   size_t con = t_chunk._addCONSTANT(1.2);
   t_chunk._writeCHUNK(_VirtualMachine::OP_CONSTANT,1);
-  t_chunk._writeCHUNK(con, 2);
+  t_chunk._writeCHUNK(con, 1);
 
+  size_t con_2 = t_chunk._addCONSTANT(3.4);
   t_chunk._writeCHUNK(_VirtualMachine::OP_CONSTANT,1);
-  t_chunk._writeCHUNK(con_2, 2);
-  
+  t_chunk._writeCHUNK(con_2, 1);
+
+  t_chunk._writeCHUNK(_VirtualMachine::OP_ADD, 1);
+
+  size_t con_3 = t_chunk._addCONSTANT(5.6);
+  t_chunk._writeCHUNK(_VirtualMachine::OP_CONSTANT,1);
+  t_chunk._writeCHUNK(con_3, 1);
+
+  t_chunk._writeCHUNK(_VirtualMachine::OP_DIVIDE, 1);
+  t_chunk._writeCHUNK(_VirtualMachine::OP_NEGATE, 1);
+
   t_chunk._writeCHUNK(_VirtualMachine::OP_RETURN, 15);
   // - - - Disassemble the CHUNK
   t_chunk._disassembleCHUNK("ASHER SHOULD BE CHUNKED");

@@ -19,6 +19,16 @@ size_t CHUNK::_disassembleINSTRUCTION(size_t _OFFSET)
   {
     case _VirtualMachine::OP_CONSTANT:
       return INSTRUCTION::_constantINSTRUCTION("OP_CONSTANT", this, _OFFSET);
+    case _VirtualMachine::OP_ADD:
+      return INSTRUCTION::_simpleINSTRUCTION("OP_ADD", _OFFSET);
+    case _VirtualMachine::OP_SUBTRACT:
+      return INSTRUCTION::_simpleINSTRUCTION("OP_SUBTRACT", _OFFSET);
+    case _VirtualMachine::OP_MULTIPLY:
+      return INSTRUCTION::_simpleINSTRUCTION("OP_MULTIPLY", _OFFSET);
+    case _VirtualMachine::OP_DIVIDE:
+      return INSTRUCTION::_simpleINSTRUCTION("OP_DIVIDE", _OFFSET);
+    case _VirtualMachine::OP_NEGATE:
+      return INSTRUCTION::_simpleINSTRUCTION("OP_NEGATE", _OFFSET);
     case _VirtualMachine::OP_RETURN:
       return INSTRUCTION::_simpleINSTRUCTION("OP_RETURN", _OFFSET);
     default:
